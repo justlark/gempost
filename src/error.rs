@@ -13,4 +13,7 @@ pub enum Error {
 
     #[error("There is a problem with the config file at `{path}`.\n\n{reason}")]
     InvalidConfigFile { path: PathBuf, reason: String },
+
+    #[error("There is a problem with the post metadata file at `{path}`.\n\n{reason}")]
+    InvalidMetadataFile { path: PathBuf, reason: String },
 }
