@@ -1,0 +1,17 @@
+# The directory to generate the site at.
+public_dir: "./public"
+
+# The directory for static assets that are copied to the generated site.
+static_dir: "./static"
+
+# A Tera template which specifies the URL path for posts.
+#
+# This template has access to the following variables:
+# - `year`: The four-digit year of publication
+# - `month`: The two-digit month of publication
+# - `day`: The two-digit day of publication
+# - `slug`: The name of the gemtext source file, sans file extension
+#
+# Docs for the Tera templating language:
+# https://keats.github.io/tera/docs/#templates
+url_pattern: "/posts/{{ slug }}"
