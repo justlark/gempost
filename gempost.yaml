@@ -15,3 +15,18 @@ static_dir: "./static"
 # Docs for the Tera templating language:
 # https://keats.github.io/tera/docs/#templates
 url_pattern: "/posts/{{ slug }}"
+
+# The title of your gemlog (required).
+#title: "My Gemlog"
+
+# The URL of your capsule's homepage (required).
+#url: "gemini://example.com"
+
+# A subtitle for your gemlog (optional).
+#subtitle: "My personal gemlog about cool stuff"
+
+# The copyright and licensing information for your gemlog (optional).
+#rights: ""
+
+# The primary author of your gemlog (optional).
+#author: ""

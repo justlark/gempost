@@ -6,17 +6,21 @@ use eyre::bail;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
+use crate::metadata::AuthorMetadata;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default = "defaults::public_dir")]
     public_dir: PathBuf,
-
     #[serde(default = "defaults::static_dir")]
     static_dir: PathBuf,
-
     #[serde(default = "defaults::url_pattern")]
     url_pattern: String,
+    title: String,
+    url: String,
+    subtitle: Option<String>,
+    rights: Option<String>,
+    author: Option<AuthorMetadata>,
 }
 
 mod defaults {
