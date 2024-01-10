@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>{{ feed.id }}</id>
+  <title>{{ feed.title }}</title>
+  {% if feed.subtitle %}
+    <subtitle>{{ feed.subtitle }}</subtitle>
+  {% endif %}
+  <updated>{{ feed.updated }}</updated>
+  {% if feed.rights %}
+    <rights>{{ feed.rights }}</rights>
+  {% endif %}
+  {% if feed.author %}
+    <author>
+      <name>{{ feed.author.name }}</name>
+      {% if feed.author.email %}<email>{{ feed.author.email }}</email>{% endif %}
+      {% if feed.author.uri %}<uri>{{ feed.author.uri }}</uri>{% endif %}
+    </author>
+  {% endif %}
+  <link rel="self" type="application/atom+xml" href="{{ feed.feed_uri }}" />
+  <link rel="alternate" href="{{ feed.page_uri }}" />
+  {% for entry in feed.entries %}
+    {% if not entry.draft %}
+      <entry>
+        <id>{{ entry.id }}</id>
+        <title>{{ entry.title }}</title>
+        {% if entry.summary %}
+            <summary>{{ entry.summary }}</summary>
+        {% endif %}
+        {% if entry.published %}
+          <published>{{ entry.published }}</published>
+        {% endif %}
+        <updated>{{ entry.updated }}</updated>
+        {% if entry.lang %}
+            <link rel="alternate" href="{{ entry.uri }}" hreflang="{{ entry.lang }}" />
+        {% else %}
+            <link rel="alternate" href="{{ entry.uri }}" />
+        {% endif %}
+        {% if entry.rights %}
+          <rights>{{ entry.rights }}</rights>
+        {% endif %}
+        {% if entry.author %}
+          <author>
+            <name>{{ entry.author.name }}</name>
+            {% if entry.author.email %}
+              <email>{{ entry.author.email }}</email>
+            {% endif %}
+            {% if entry.author.uri %}
+              <uri>{{ entry.author.uri }}</uri>
+            {% endif %}
+          </author>
+        {% endif %}
+      </entry>
+    {% endif %}
+  {% endfor %}
+</feed>

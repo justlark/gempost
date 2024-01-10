@@ -18,6 +18,7 @@ pub struct Config {
     url_pattern: String,
     title: String,
     url: String,
+    feed_path: String,
     subtitle: Option<String>,
     rights: Option<String>,
     author: Option<AuthorMetadata>,

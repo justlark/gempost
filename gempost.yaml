@@ -22,6 +22,9 @@ url_pattern: "/posts/{{ slug }}"
 # The URL of your capsule's homepage (required).
 #url: "gemini://example.com"
 
+# The URL to serve your capsule's Atom feed at.
+#feed_path: "/atom.xml"
+
 # A subtitle for your gemlog (optional).
 #subtitle: "My personal gemlog about cool stuff"
 

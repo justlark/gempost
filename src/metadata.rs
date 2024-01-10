@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::path::Path;
-use std::time::SystemTime;
 
 use eyre::bail;
 use serde::{Deserialize, Serialize};
@@ -15,21 +14,20 @@ pub struct AuthorMetadata {
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PostMetadata {
+pub struct EntryMetadata {
     id: String,
+    uri: String,
     title: String,
     summary: Option<String>,
-    published: SystemTime,
-    updated: Option<SystemTime>,
+    published: Option<String>,
+    updated: String,
     author: Option<AuthorMetadata>,
-    draft: Option<bool>,
+    rights: Option<String>,
+    lang: Option<String>,
+    draft: bool,
 }
 
-impl PostMetadata {
-    pub fn is_draft(&self) -> bool {
-        matches!(self.draft, Some(true))
-    }
-
+impl EntryMetadata {
     pub fn read(path: &Path) -> eyre::Result<Self> {
         let metadata_file = File::open(path)?;
 
@@ -41,4 +39,17 @@ impl PostMetadata {
             }),
         }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedMetadata {
+    id: String,
+    title: String,
+    page_uri: String,
+    feed_uri: String,
+    subtitle: Option<String>,
+    rights: Option<String>,
+    author: Option<AuthorMetadata>,
+    updated: String,
+    entries: Vec<EntryMetadata>,
 }
