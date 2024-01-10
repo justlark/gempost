@@ -33,11 +33,11 @@ mod defaults {
     use std::path::PathBuf;
 
     pub fn public_dir() -> PathBuf {
-        PathBuf::from("./public")
+        PathBuf::from("./public/")
     }
 
     pub fn static_dir() -> PathBuf {
-        PathBuf::from("./static")
+        PathBuf::from("./static/")
     }
 
     pub fn index_template_file() -> PathBuf {

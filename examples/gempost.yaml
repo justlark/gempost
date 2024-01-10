@@ -1,9 +1,9 @@
 # The directory to generate the site at (required).
-public_dir: "./public"
+public_dir: "./public/"
 
 # The directory for static assets that are copied to the generated site
 # verbatim (required).
-static_dir: "./static"
+static_dir: "./static/"
 
 # The path of the Tera template used to generate the gemlog index page
 # (required).
