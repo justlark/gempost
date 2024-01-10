@@ -14,6 +14,10 @@ pub struct Config {
     public_dir: PathBuf,
     #[serde(default = "defaults::static_dir")]
     static_dir: PathBuf,
+    #[serde(default = "defaults::index_template_file")]
+    index_template_file: PathBuf,
+    #[serde(default = "defaults::post_template_file")]
+    post_template_file: PathBuf,
     #[serde(default = "defaults::post_path")]
     post_path: String,
     #[serde(default = "defaults::feed_path")]
@@ -34,6 +38,14 @@ mod defaults {
 
     pub fn static_dir() -> PathBuf {
         PathBuf::from("./static")
+    }
+
+    pub fn index_template_file() -> PathBuf {
+        PathBuf::from("./index.tera")
+    }
+
+    pub fn post_template_file() -> PathBuf {
+        PathBuf::from("./post.tera")
     }
 
     pub fn post_path() -> String {
