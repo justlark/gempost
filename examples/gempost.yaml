@@ -1,10 +1,10 @@
-# The directory to generate the site at.
+# The directory to generate the site at (required).
 public_dir: "./public"
 
-# The directory for static assets that are copied to the generated site.
+# The directory for static assets that are copied to the generated site verbatim (required).
 static_dir: "./static"
 
-# A Tera template which specifies the URL path for posts.
+# A Tera template which specifies the URI path for posts (required).
 #
 # This template has access to the following variables:
 # - `year`: The four-digit year of publication
@@ -14,16 +14,16 @@ static_dir: "./static"
 #
 # Docs for the Tera templating language:
 # https://keats.github.io/tera/docs/#templates
-url_pattern: "/posts/{{ slug }}"
+post_path: "/posts/{{ slug }}"
+
+# The URI path to serve your capsule's Atom feed at (required).
+feed_path: "/posts/atom.xml"
 
 # The title of your gemlog (required).
 #title: "My Gemlog"
 
-# The URL of your capsule's homepage (required).
-#url: "gemini://example.com"
-
-# The URL to serve your capsule's Atom feed at.
-#feed_path: "/atom.xml"
+# The URI of your capsule's homepage (required).
+#uri: "gemini://example.com"
 
 # A subtitle for your gemlog (optional).
 #subtitle: "My personal gemlog about cool stuff"
@@ -32,4 +32,7 @@ url_pattern: "/posts/{{ slug }}"
 #rights: ""
 
 # The primary author of your gemlog (optional).
-#author: ""
+#author:
+#  name: "Jane Doe" # Required
+#  email: "jane@example.com" # Optional
+#  uri: "gemini://jane.example.com" # Optional

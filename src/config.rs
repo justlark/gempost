@@ -14,11 +14,12 @@ pub struct Config {
     public_dir: PathBuf,
     #[serde(default = "defaults::static_dir")]
     static_dir: PathBuf,
-    #[serde(default = "defaults::url_pattern")]
-    url_pattern: String,
-    title: String,
-    url: String,
+    #[serde(default = "defaults::post_path")]
+    post_path: String,
+    #[serde(default = "defaults::feed_path")]
     feed_path: String,
+    title: String,
+    uri: String,
     subtitle: Option<String>,
     rights: Option<String>,
     author: Option<AuthorMetadata>,
@@ -35,8 +36,12 @@ mod defaults {
         PathBuf::from("./static")
     }
 
-    pub fn url_pattern() -> String {
+    pub fn post_path() -> String {
         String::from("/posts/{{ slug }}")
+    }
+
+    pub fn feed_path() -> String {
+        String::from("/posts/atom.xml")
     }
 }
 
