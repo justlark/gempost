@@ -1,0 +1,34 @@
+#
+# This is an example of a YAML sidecar metadata file showing all possible
+# metadata values.
+#
+
+# A universally unique URI that will never change. I recommend using a UUID.
+id: "urn:uuid:165b10e8-78c9-45ba-83ef-2f7bd5d89725"
+
+# The title of your post.
+title: "My Post"
+
+# When your post was last updated.
+updated: "2024-01-11T09:41:00-05:00"
+
+# A brief summary of your post.
+summary: "My first post on Gemini"
+
+# When your post was originally published.
+published: "2024-01-11T08:35:00-05:00"
+
+# The primary author of your post.
+author:
+  name: "Jane Doe" # Required
+  email: "jane@example.com" # Optional
+  uri: "gemini://jane.example.com" # Optional
+
+# The license and copyright information for your post.
+rights: "CC BY-SA"
+
+# The language code for the language this post is written in.
+lang: "en-US"
+
+# Whether this post is a draft. Draft posts will not be published.
+draft: true
