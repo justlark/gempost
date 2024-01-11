@@ -1,0 +1,12 @@
+# {{ entry.title }}
+
+{{ entry.body }}
+
+---
+
+=> Posts gemini://example.com/posts/
+=> Home gemini://example.com/
+
+{% if entry.rights %}
+{{ entry.rights }}
+{% endif %}

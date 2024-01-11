@@ -15,3 +15,12 @@ navigation header to each post. There are examples of both under
 The metadata in the sidecar YAML file allows you to generate an Atom feed with
 rich metadata, but most of this metadata is optional and not necessary to
 generate a working feed.
+
+## Examples
+
+- See [examples/gempost.yaml](./examples/gempost.yaml) For an example config
+  file you can use to get started.
+- See [examples/metadata/](./examples/metadata/) For examples of the sidecar
+  YAML metadata files.
+- See [examples/templates/](./examples/templates/) For examples of index page
+  templates and post page templates.
