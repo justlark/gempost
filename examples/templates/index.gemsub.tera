@@ -1,0 +1,20 @@
+{#
+  This is an example of a Tera template for your gemlog's index page.
+
+  This example formats your index page in the standard gemsub format that
+  Gemini clients can subscribe to. Note that gempost already generates an Atom
+  feed that clients should be able to subscribe to.
+
+  Here is the documentation for the gemsub format:
+  https://geminiprotocol.net/docs/companion/subscription.gmi
+#}
+
+# {{ feed.title }}
+
+{% if feed.subtitle %}
+## {{ feed.subtitle }}
+{% endif %}
+
+{% for entry in feed.entries %}
+=> {{ entry.uri }} {{ entry.updated | date(format="%Y-%m-%d") }} - {{ entry.title }}
+{% endfor %}

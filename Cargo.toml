@@ -9,4 +9,5 @@ color-eyre = "0.6.2"
 eyre = "0.6.11"
 serde = { version = "1.0.195", features = ["derive"] }
 serde_yaml = "0.9.30"
+tera = "1.19.1"
 thiserror = "1.0.56"

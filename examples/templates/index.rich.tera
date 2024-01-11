@@ -1,0 +1,27 @@
+{#
+  This is an example of a Tera template for your gemlog's index page.
+
+  This example provides more rich output that makes use of more of the metadata
+  provided in the sidecar YAML files, such as post summaries.
+#}
+
+# {{ feed.title }}
+
+{% if feed.subtitle %}
+## {{ feed.subtitle }}
+{% endif %}
+
+{% for entry in entries %}
+=> {{ entry.uri }} {{ entry.updated | date(format="%d %b %Y") }} • {{ entry.title }}
+
+{% if entry.summary %}
+{{ entry.summary }}
+
+{% endif %}
+{% endfor %}
+
+---
+
+{% if feed.rights %}
+{{ feed.rights }}
+{% endif %}
