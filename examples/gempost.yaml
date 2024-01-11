@@ -7,11 +7,11 @@ static_dir: "./static/"
 
 # The path of the Tera template used to generate the gemlog index page
 # (required).
-index_template_file: "./index.tera"
+index_template_file: "./templates/index.tera"
 
 # The path of the Tera template used to generate each gemlog post page
 # (required).
-post_template_file: "./post.tera"
+post_template_file: "./templates/post.tera"
 
 # A Tera template which specifies the URI path for posts (required).
 #

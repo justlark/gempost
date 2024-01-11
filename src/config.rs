@@ -41,11 +41,11 @@ mod defaults {
     }
 
     pub fn index_template_file() -> PathBuf {
-        PathBuf::from("./index.tera")
+        PathBuf::from("./templates/index.tera")
     }
 
     pub fn post_template_file() -> PathBuf {
-        PathBuf::from("./post.tera")
+        PathBuf::from("./templates/post.tera")
     }
 
     pub fn post_path() -> String {
