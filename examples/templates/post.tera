@@ -1,3 +1,10 @@
+{#
+  This is an example of a Tera template for each individual post.
+
+  This example adds a header with the title from the sidecar YAML metadata file
+  and a footer with navigation links and the copyright/license information.
+#}
+
 # {{ entry.title }}
 
 {{ entry.body }}
