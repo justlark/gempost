@@ -14,6 +14,8 @@ pub struct Config {
     public_dir: PathBuf,
     #[serde(default = "defaults::static_dir")]
     static_dir: PathBuf,
+    #[serde(default = "defaults::posts_dir")]
+    posts_dir: PathBuf,
     #[serde(default = "defaults::index_template_file")]
     index_template_file: PathBuf,
     #[serde(default = "defaults::post_template_file")]
@@ -38,6 +40,10 @@ mod defaults {
 
     pub fn static_dir() -> PathBuf {
         PathBuf::from("./static/")
+    }
+
+    pub fn posts_dir() -> PathBuf {
+        PathBuf::from("./posts/")
     }
 
     pub fn index_template_file() -> PathBuf {

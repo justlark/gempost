@@ -5,6 +5,10 @@ public_dir: "./public/"
 # verbatim (required).
 static_dir: "./static/"
 
+# The directory for gemtext gemlog posts and their sidecar metadata files
+# (required).
+posts_dir: "./posts/"
+
 # The path of the Tera template used to generate the gemlog index page
 # (required).
 index_template_file: "./templates/index.tera"

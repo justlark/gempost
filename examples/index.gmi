@@ -1,0 +1,5 @@
+# My Capsule
+
+This is an example homepage for your capsule.
+
+=> gemini://localhost/posts/ Gemlog
