@@ -40,7 +40,6 @@ object.
 
 ### Entry object
 
-- `id` (string)
 - `uri` (string)
 - `title` (string)
 - `body` (string)

@@ -8,23 +8,22 @@ use crate::error::Error;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthorMetadata {
-    name: String,
-    email: Option<String>,
-    uri: Option<String>,
+    pub name: String,
+    pub email: Option<String>,
+    pub uri: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryMetadata {
-    id: String,
-    uri: String,
-    title: String,
-    updated: String,
-    summary: Option<String>,
-    published: Option<String>,
-    author: Option<AuthorMetadata>,
-    rights: Option<String>,
-    lang: Option<String>,
-    draft: bool,
+    pub id: String,
+    pub title: String,
+    pub updated: String,
+    pub summary: Option<String>,
+    pub published: Option<String>,
+    pub author: Option<AuthorMetadata>,
+    pub rights: Option<String>,
+    pub lang: Option<String>,
+    pub draft: bool,
 }
 
 impl EntryMetadata {
@@ -43,13 +42,13 @@ impl EntryMetadata {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FeedMetadata {
-    id: String,
-    title: String,
-    page_uri: String,
-    feed_uri: String,
-    subtitle: Option<String>,
-    rights: Option<String>,
-    author: Option<AuthorMetadata>,
-    updated: String,
-    entries: Vec<EntryMetadata>,
+    pub id: String,
+    pub title: String,
+    pub page_uri: String,
+    pub feed_uri: String,
+    pub subtitle: Option<String>,
+    pub rights: Option<String>,
+    pub author: Option<AuthorMetadata>,
+    pub updated: String,
+    pub entries: Vec<EntryMetadata>,
 }

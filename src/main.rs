@@ -2,6 +2,7 @@ mod cli;
 mod config;
 mod error;
 mod metadata;
+mod template;
 
 use std::process::ExitCode;
 
