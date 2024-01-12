@@ -25,6 +25,10 @@ generate a working feed.
 - See [examples/templates/](./examples/templates/) For examples of index page
   templates and post page templates.
 
+The examples of metadata and template files are split into "minimal" examples
+that will get you started, and "complete" examples that demonstrate more of the
+features of gempost.
+
 ## Templates
 
 The index page template has access to a `feed` variable which is a Feed object.
