@@ -10,7 +10,7 @@ You can use a [Tera](https://keats.github.io/tera/) template to customize the
 format of the index page. You can also use a template to customize the format
 of the gemlog posts themselves, such as to add a copyright footer or a
 navigation header to each post. There are examples of both under
-[examples/templates/](./examples/templates/).
+[examples/](./examples/).
 
 The metadata in the sidecar YAML file allows you to generate an Atom feed with
 rich metadata, but most of this metadata is optional and not necessary to
@@ -26,57 +26,23 @@ with Cargo.
 cargo install --git https://github.com/justlark/gempost.git gempost
 ```
 
-Start by creating a directory for your new Gemini capsule.
+You can initialize a new gempost project like this:
 
 ```shell
-mkdir ./capsule
+gempost init ./capsule/
 ```
 
-You should also clone the gempost repo so you can access the example config
-files and templates. Alternatively, you can just download or copy them from
-GitHub.
+This will create a directory `./capsule/` and populate it with:
 
-```shell
-git clone https://github.com/justlark/gempost ./gempost
-```
+- An example `gempost.yaml` config file to get you started. You'll need to edit
+  this to set your capsule's title and URI.
+- Some basic templates you can use as-is or customize (an index page template
+  and a post page template).
+- An "hello world" example post for your gemlog, with its accompanying sidecar
+  metadata file.
+- A static `index.gmi` for your capsule root.
 
-Copy the example `gempost.yaml` config file into your project directory. Make
-sure you edit it to specify the title of your gemlog and your capsule's URI.
-
-```shell
-cp ./gempost/examples/gempost.yaml ./capsule/
-nano ./capsule/gempost.yaml
-```
-
-You'll need an index page template and a post page template. Start with these
-minimal example templates; you can customize them later.
-
-```shell
-mkdir ./capsule/templates
-cp ./gempost/examples/templates/index.minimal.tera ./capsule/templates/index.tera
-cp ./gempost/examples/templates/post.minimal.tera ./capsule/templates/post.tera
-```
-
-Let's add your first gemlog post! In the `./posts/` directory, add a
-`hello-world.gmi` and a `hello-world.yaml`. The gemtext file contains the
-contents of your post, and the YAML file contains metadata, like the title of
-your post and when it was last updated. These files need to have the same name
-(sans file extension).
-
-```shell
-mkdir ./capsule/posts
-cp ./gemini/examples/metadata/hello-world.minimal.yaml ./capsule/posts/hello-world.yaml
-echo "Hello, world!" > ./capsule/posts/hello-world.gmi
-```
-
-The rest of your capsule (everything except your gemlog) goes in the
-`./static/` directory. At a minimum, you'll need an `index.gmi`.
-```shell
-mkdir ./capsule/static
-cp ./gemini/examples/index.gmi ./capsule/static/index.gmi
-```
-
-Now you're ready to build your site!
+Edit the `gempost.yaml`, and then you're ready to build your site!
 
 ```shell
 cd ./capsule
@@ -94,7 +60,7 @@ capsule over the Gemini protocol.
 - See [examples/post.tera](./examples/post.tera) for an example of a post page
   template.
 - See [examples/metadata.yaml](./examples/metadata.yaml) for an example of a
-  sidecar gemlog post metadata file.
+  sidecar gemlog post metadata file showing all the possible fields.
 
 ## Templates
 
