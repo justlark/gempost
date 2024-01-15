@@ -89,16 +89,12 @@ capsule over the Gemini protocol.
 
 ## Examples
 
-- See [examples/gempost.yaml](./examples/gempost.yaml) For an example config
-  file you can use to get started.
-- See [examples/metadata/](./examples/metadata/) For examples of the sidecar
-  YAML metadata files.
-- See [examples/templates/](./examples/templates/) For examples of index page
-  templates and post page templates.
-
-The examples of metadata and template files are split into "minimal" examples
-that will get you started, and "complete" examples that demonstrate more of the
-features of gempost.
+- See [examples/index.tera](./examples/index.tera) for an example of an index
+  page template.
+- See [examples/post.tera](./examples/post.tera) for an example of a post page
+  template.
+- See [examples/metadata.yaml](./examples/metadata.yaml) for an example of a
+  sidecar gemlog post metadata file.
 
 ## Templates
 
