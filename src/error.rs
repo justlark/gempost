@@ -16,4 +16,7 @@ pub enum Error {
 
     #[error("There is a problem with the post metadata file at `{path}`.\n\n{reason}")]
     InvalidMetadataFile { path: PathBuf, reason: String },
+
+    #[error("You cannot initialize this directory as a gempost project because this file already exists:\n{path}")]
+    ExampleFileAlreadyExists { path: PathBuf },
 }
