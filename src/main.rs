@@ -5,16 +5,26 @@ mod init;
 mod metadata;
 mod template;
 
+use std::path::Path;
 use std::process::ExitCode;
 
 use clap::Parser;
 use cli::Cli;
 use error::Error;
 
-fn run() -> eyre::Result<()> {
-    let _ = Cli::parse();
+use crate::init::init_project;
 
-    // TODO
+fn run() -> eyre::Result<()> {
+    let args = Cli::parse();
+
+    match args.command {
+        cli::Commands::Init(init) => {
+            init_project(init.directory.as_deref().unwrap_or(Path::new(".")))?;
+
+            println!("Remember to edit the `gempost.yaml` to set your capsule's title and URI!")
+        }
+        cli::Commands::Build(_) => todo!(),
+    }
 
     Ok(())
 }

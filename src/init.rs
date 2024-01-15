@@ -42,8 +42,8 @@ const POST_METADATA_FILE: &str = include_str!(r"examples\metadata.yaml");
 #[cfg(not(windows))]
 const POST_METADATA_FILE: &str = include_str!(r"examples/metadata.yaml");
 
-fn put_file(abs_path: &Path, contents: &str) -> eyre::Result<()> {
-    match abs_path.parent() {
+fn put_file(file: &Path, contents: &str) -> eyre::Result<()> {
+    match file.parent() {
         None => {
             bail!("failed creating file's parent directory because it has no parent path (this is a bug)")
         }
@@ -52,15 +52,11 @@ fn put_file(abs_path: &Path, contents: &str) -> eyre::Result<()> {
         }
     };
 
-    let mut example_file = match OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(abs_path)
-    {
+    let mut example_file = match OpenOptions::new().write(true).create_new(true).open(file) {
         Ok(file) => file,
         Err(err) if err.kind() == io::ErrorKind::AlreadyExists => {
             bail!(Error::ExampleFileAlreadyExists {
-                path: abs_path.to_owned()
+                path: file.to_owned()
             });
         }
         Err(err) => Err(err).wrap_err("failed creating example file")?,

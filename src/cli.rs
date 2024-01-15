@@ -12,7 +12,7 @@ pub struct Cli {
 #[derive(Args, Clone)]
 pub struct Init {
     /// The directory to initialize
-    pub directory: Option<String>,
+    pub directory: Option<PathBuf>,
 }
 
 #[derive(Args, Clone)]
@@ -24,7 +24,7 @@ pub struct Build {
 
 #[derive(Subcommand, Clone)]
 pub enum Commands {
-    /// Initialize a new capsule with example templates
+    /// Initialize a new gempost project
     Init(Init),
 
     /// Build your capsule
