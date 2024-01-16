@@ -42,16 +42,16 @@ This will create a directory `./capsule/` and populate it with:
   metadata file.
 - A static `index.gmi` for your capsule root.
 
-Edit the `gempost.yaml`, and then you're ready to build your site!
+Edit the `gempost.yaml`, and then you're ready to build your capsule!
 
 ```shell
 cd ./capsule
 gempost build
 ```
 
-Your site will be generated in the `./public/` directory. You'll need a Gemini
-server like [Agate](https://github.com/mbrubeck/agate) to actually serve your
-capsule over the Gemini protocol.
+Your capsule will be generated in the `./public/` directory. You'll need a
+Gemini server like [Agate](https://github.com/mbrubeck/agate) to actually serve
+your capsule over the Gemini protocol.
 
 You can add new posts to your gemlog by creating a `.gmi` file in the
 `./posts/` directory with an accompanying `.yaml` file with the same filename.
@@ -59,8 +59,8 @@ See [examples/metadata.yaml](./examples/metadata.yaml) for an example of all
 the different values you can set in the YAML metadata file. Only some are
 required.
 
-You can add new static content to your site (anything that's not your gemlog)
-by putting it in the `./static/` directory.
+You can add new static content to your capsule (anything that's not your
+gemlog) by putting it in the `./static/` directory.
 
 You can customize the index page and post page templates in the `./templates/`
 directory from their defaults. They use the
