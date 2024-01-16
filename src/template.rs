@@ -1,4 +1,9 @@
+use std::fs::File;
+use std::path::Path;
+
+use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
+use tera::{Context, Tera};
 
 use crate::metadata::{AuthorMetadata, EntryMetadata};
 
@@ -34,6 +39,24 @@ pub struct EntryTemplateData {
 }
 
 impl EntryTemplateData {
+    pub fn build_post_page(&self, template: &Path, output: &Path) -> eyre::Result<()> {
+        let mut tera = Tera::default();
+        tera.add_template_file(template, Some("post"))
+            .wrap_err("failed reading gemlog post page template")?;
+
+        let mut context = Context::new();
+        context.insert("entry", self);
+
+        let dest_file = File::create(output).wrap_err("failed creating gemlog post page file")?;
+
+        tera.render_to("post", &context, dest_file)
+            .wrap_err("failed rendering gemlog post page from template")?;
+
+        Ok(())
+    }
+}
+
+impl EntryTemplateData {
     pub fn from_metadata(metadata: EntryMetadata, body: String, uri: String) -> Self {
         Self {
             uri,
@@ -58,4 +81,22 @@ pub struct FeedTemplateData {
     pub rights: Option<String>,
     pub author: Option<AuthorTemplateData>,
     pub entries: Vec<EntryTemplateData>,
+}
+
+impl FeedTemplateData {
+    pub fn build_index_page(&self, template: &Path, output: &Path) -> eyre::Result<()> {
+        let mut tera = Tera::default();
+        tera.add_template_file(template, Some("index"))
+            .wrap_err("failed reading gemlog index page template")?;
+
+        let mut context = Context::new();
+        context.insert("feed", self);
+
+        let dest_file = File::create(output).wrap_err("failed creating gemlog index page file")?;
+
+        tera.render_to("index", &context, dest_file)
+            .wrap_err("failed rendering gemlog index page from template")?;
+
+        Ok(())
+    }
 }
