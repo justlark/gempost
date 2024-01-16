@@ -30,5 +30,10 @@ rights: "CC BY-SA"
 # The language code for the language this post is written in.
 lang: "en-US"
 
+# The categories this post belongs to.
+categories:
+  - "Programming"
+  - "DIY"
+
 # Whether this post is a draft. Draft posts will not be published.
 draft: true

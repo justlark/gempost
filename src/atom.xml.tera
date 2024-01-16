@@ -49,6 +49,9 @@
             {% endif %}
           </author>
         {% endif %}
+        {% for category in entry.categories %}
+          <category term="{{ category | slugify }}" scheme="{{ feed.id }}" label="{{ category }}" />
+        {% endfor %}
       </entry>
     {% endif %}
   {% endfor %}

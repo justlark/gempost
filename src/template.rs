@@ -30,6 +30,7 @@ pub struct EntryTemplateData {
     pub author: Option<AuthorTemplateData>,
     pub rights: Option<String>,
     pub lang: Option<String>,
+    pub categories: Vec<String>,
 }
 
 impl EntryTemplateData {
@@ -44,6 +45,7 @@ impl EntryTemplateData {
             author: metadata.author.map(AuthorMetadata::into),
             rights: metadata.rights,
             lang: metadata.lang,
+            categories: metadata.categories.unwrap_or_default(),
         }
     }
 }

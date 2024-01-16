@@ -18,6 +18,10 @@
 {{ entry.summary }}
 
 {% endif %}
+{% if entry.categories %}
+{% for category of entry.categories %}#{{ category }}{% if not loop.last %} {% endif %}{% endfor %}
+
+{% endif %}
 {% endfor %}
 
 ---

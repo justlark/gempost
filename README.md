@@ -102,6 +102,7 @@ object.
 - `author` (Author object, optional)
 - `rights` (string, optional)
 - `lang` (string, optional)
+- `categories` (array of strings, optional)
 
 ### Feed object
 

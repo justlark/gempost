@@ -1,11 +1,23 @@
 {#
   This is an example of a Tera template for each individual post.
 
-  This example adds a header with the title from the sidecar YAML metadata file
-  and a footer with navigation links and the copyright/license information.
+  This example adds a header with the title from the sidecar YAML metadata
+  file, some metadata at the top of the post body, and a footer with navigation
+  links and the copyright/license information.
 #}
 
 # {{ entry.title }}
+
+{% if entry.published %}
+* Originally Posted: {{ entry.published }}
+{% endif %}
+* Last Updated: {{ entry.updated }}
+{% if entry.author %}
+* Author: {{ entry.author.name }}
+{% endif %}
+{% if entry.categories %}
+* Categories: {{ entry.categories | join(sep=", ") }}
+{% endif %}
 
 {{ entry.body }}
 
