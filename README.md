@@ -53,6 +53,22 @@ Your site will be generated in the `./public/` directory. You'll need a Gemini
 server like [Agate](https://github.com/mbrubeck/agate) to actually serve your
 capsule over the Gemini protocol.
 
+You can add new posts to your gemlog by creating a `.gmi` file in the
+`./posts/` directory with an accompanying `.yaml` file with the same filename.
+See [examples/metadata.yaml](./examples/metadata.yaml) for an example of all
+the different values you can set in the YAML metadata file. Only some are
+required.
+
+You can add new static content to your site (anything that's not your gemlog)
+by putting it in the `./static/` directory.
+
+You can customize the index page and post page templates in the `./templates/`
+directory from their defaults. They use the
+[Tera](https://keats.github.io/tera/) text templating language, which is
+similar to the popular Jinja templating language. See the
+[Templates](#templates) section below for a list of all the variables that are
+available inside these template.
+
 ## Examples
 
 - See [examples/index.tera](./examples/index.tera) for an example of an index
