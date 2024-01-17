@@ -1,3 +1,4 @@
+mod build;
 mod cli;
 mod config;
 mod error;
