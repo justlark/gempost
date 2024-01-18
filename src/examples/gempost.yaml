@@ -42,7 +42,7 @@ feed_path: "/posts/atom.xml"
 #subtitle: "My personal gemlog about cool stuff"
 
 # The copyright and licensing information for your gemlog (optional).
-#rights: ""
+#rights: "CC BY-SA"
 
 # The primary author of your gemlog (optional).
 #author:
