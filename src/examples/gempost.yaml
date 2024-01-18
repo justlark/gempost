@@ -20,9 +20,9 @@ post_template_file: "./templates/post.tera"
 # A Tera template which specifies the URI path for posts (required).
 #
 # This template has access to the following variables:
-# - `year`: The four-digit year of publication
-# - `month`: The two-digit month of publication
-# - `day`: The two-digit day of publication
+# - `year`: The four-digit year of publication, if a publication date was provided
+# - `month`: The two-digit month of publication, if a publication date was provided
+# - `day`: The two-digit day of publication, if a publication date was provided
 # - `slug`: The name of the gemtext source file, sans file extension
 #
 # Docs for the Tera templating language:

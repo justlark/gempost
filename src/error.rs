@@ -19,4 +19,13 @@ pub enum Error {
 
     #[error("You cannot initialize this directory as a gempost project because this file already exists:\n{path}")]
     ExampleFileAlreadyExists { path: PathBuf },
+
+    #[error("There was an issue generating the index page.\n\n{reason}")]
+    InvalidIndexPageTemplate { reason: String },
+
+    #[error("There was an issue generating a post page.\n\n{reason}")]
+    InvalidPostPageTemplate { path: PathBuf, reason: String },
+
+    #[error("The post path template in your gempost.yaml is invalid.\nTemplate: `{template}`\n\n{reason}")]
+    InvalidPostPath { template: String, reason: String },
 }

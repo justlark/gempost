@@ -2,10 +2,13 @@ use std::collections::HashSet;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 
+use chrono::{DateTime, Datelike};
 use eyre::{bail, WrapErr};
 use serde::{Deserialize, Serialize};
 use tera::{Context, Tera};
+use url::Url;
 
+use crate::error::Error;
 use crate::metadata::{AuthorMetadata, EntryMetadata};
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -94,9 +97,9 @@ fn check_mismatched_post_files(
 }
 
 impl EntryTemplateData {
-    fn from_metadata(metadata: EntryMetadata, body: String, uri: String) -> Self {
+    fn from_metadata(metadata: EntryMetadata, body: String, url: Url) -> Self {
         Self {
-            uri,
+            uri: url.to_string(),
             title: metadata.title,
             body,
             updated: metadata.updated,
@@ -109,7 +112,7 @@ impl EntryTemplateData {
         }
     }
 
-    fn from_post_paths(post_paths: &HashSet<PathBuf>) -> eyre::Result<Vec<Self>> {
+    fn from_post_paths(post_paths: &HashSet<PathBuf>, post_url: &Url) -> eyre::Result<Vec<Self>> {
         let mut entries = Vec::new();
 
         // By this point, we've already removed post paths from the set that do not have an
@@ -127,18 +130,21 @@ impl EntryTemplateData {
 
             let post_metadata = EntryMetadata::read(&metadata_path)?;
 
-            // TODO: Implement post URL template parsing.
             entries.push(Self::from_metadata(
                 post_metadata,
                 post_body,
-                String::from("TODO"),
+                post_url.to_owned(),
             ));
         }
 
         Ok(entries)
     }
 
-    pub fn from_posts(posts_dir: &Path, warn_handler: impl Fn(&str)) -> eyre::Result<Vec<Self>> {
+    pub fn from_posts(
+        posts_dir: &Path,
+        post_url: &Url,
+        warn_handler: impl Fn(&str),
+    ) -> eyre::Result<Vec<Self>> {
         let file_entries = fs::read_dir(posts_dir).wrap_err("failed reading posts directory")?;
 
         let mut post_paths = HashSet::new();
@@ -177,21 +183,30 @@ impl EntryTemplateData {
         check_mismatched_post_files(&mut post_paths, &mut metadata_paths, warn_handler)
             .wrap_err("failed checking for mismatched post files")?;
 
-        Self::from_post_paths(&post_paths)
+        Self::from_post_paths(&post_paths, post_url)
     }
 
-    pub fn render_post_page(&self, template: &Path, output: &Path) -> eyre::Result<()> {
+    pub fn render(&self, template: &Path, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
-        tera.add_template_file(template, Some("post"))
-            .wrap_err("failed reading gemlog post page template")?;
+
+        if let Err(err) = tera.add_template_file(template, Some("post")) {
+            bail!(Error::InvalidPostPageTemplate {
+                path: output.to_owned(),
+                reason: err.to_string(),
+            });
+        }
 
         let mut context = Context::new();
         context.insert("entry", self);
 
         let dest_file = File::create(output).wrap_err("failed creating gemlog post page file")?;
 
-        tera.render_to("post", &context, dest_file)
-            .wrap_err("failed rendering gemlog post page from template")?;
+        if let Err(err) = tera.render_to("post", &context, dest_file) {
+            bail!(Error::InvalidPostPageTemplate {
+                path: output.to_owned(),
+                reason: err.to_string(),
+            });
+        }
 
         Ok(())
     }
@@ -208,18 +223,91 @@ pub struct FeedTemplateData {
 }
 
 impl FeedTemplateData {
-    pub fn render_index_page(&self, template: &Path, output: &Path) -> eyre::Result<()> {
+    pub fn render(&self, template: &Path, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
-        tera.add_template_file(template, Some("index"))
-            .wrap_err("failed reading gemlog index page template")?;
+
+        if let Err(err) = tera.add_template_file(template, Some("index")) {
+            bail!(Error::InvalidIndexPageTemplate {
+                reason: err.to_string(),
+            });
+        }
 
         let mut context = Context::new();
         context.insert("feed", self);
 
         let dest_file = File::create(output).wrap_err("failed creating gemlog index page file")?;
 
-        tera.render_to("index", &context, dest_file)
-            .wrap_err("failed rendering gemlog index page from template")?;
+        if let Err(err) = tera.render_to("index", &context, dest_file) {
+            bail!(Error::InvalidIndexPageTemplate {
+                reason: err.to_string(),
+            });
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct PostPathParams {
+    template: String,
+    slug: String,
+    published: DateTime<chrono::FixedOffset>,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PostPathTemplateData {
+    pub year: String,
+    pub month: String,
+    pub day: String,
+    pub slug: String,
+}
+
+impl From<PostPathParams> for PostPathTemplateData {
+    fn from(params: PostPathParams) -> Self {
+        Self {
+            year: format!("{:0>4}", params.published.year()),
+            month: format!("{:0>2}", params.published.month()),
+            day: format!("{:0>2}", params.published.day()),
+            slug: params.slug,
+        }
+    }
+}
+
+impl PostPathTemplateData {
+    pub fn render(&self, base_url: &mut Url, template: &str) -> eyre::Result<()> {
+        let mut tera = Tera::default();
+
+        if let Err(err) = tera.add_raw_template("path", template) {
+            bail!(Error::InvalidPostPath {
+                template: template.to_owned(),
+                reason: err.to_string(),
+            });
+        }
+
+        let mut context = Context::new();
+        context.insert("year", &self.year);
+        context.insert("month", &self.month);
+        context.insert("day", &self.day);
+        context.insert("slug", &self.slug);
+
+        let raw_path = match tera.render("path", &context) {
+            Ok(raw_path) => raw_path,
+            Err(err) => bail!(Error::InvalidPostPath {
+                template: template.to_owned(),
+                reason: err.to_string(),
+            }),
+        };
+
+        let mut base_segments = match base_url.path_segments_mut() {
+            Ok(segments) => segments,
+            Err(()) => bail!("capsule base URI cannot be a base URL"),
+        };
+
+        for segment in raw_path.split('/') {
+            base_segments.push(segment);
+        }
+
+        drop(base_segments);
 
         Ok(())
     }
