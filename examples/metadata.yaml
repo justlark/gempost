@@ -3,37 +3,37 @@
 # metadata values.
 #
 
-# A universally unique URI that will never change. I recommend using a UUID.
+# A universally unique URI that will never change. I recommend using a UUID. (required)
 id: "urn:uuid:165b10e8-78c9-45ba-83ef-2f7bd5d89725"
 
-# The title of your post.
+# The title of your post. (required)
 title: "Hello World"
 
-# When your post was last updated.
+# When your post was last updated. (required)
 updated: "2024-01-11T09:41:00-05:00"
 
-# A brief summary of your post.
+# A brief summary of your post. (optional)
 summary: "My first post on Gemini"
 
-# When your post was originally published.
+# When your post was originally published. (optional)
 published: "2024-01-11T08:35:00-05:00"
 
-# The primary author of your post.
+# The primary author of your post. (optional)
 author:
   name: "Jane Doe" # Required
   email: "jane@example.com" # Optional
   uri: "gemini://jane.example.com" # Optional
 
-# The license and copyright information for your post.
+# The license and copyright information for your post. (optional)
 rights: "CC BY-SA"
 
-# The language code for the language this post is written in.
+# The language code for the language this post is written in. (optional)
 lang: "en-US"
 
-# The categories this post belongs to.
+# The categories this post belongs to. (optional)
 categories:
   - "Programming"
   - "DIY"
 
-# Whether this post is a draft. Draft posts will not be published.
+# Whether this post is a draft. Draft posts will not be published. (optional)
 draft: true
