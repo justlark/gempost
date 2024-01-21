@@ -92,7 +92,7 @@ object.
 
 ### Entry object
 
-- `uri` (string)
+- `url` (string)
 - `title` (string)
 - `body` (string)
 - `summary` (string, optional)
@@ -105,9 +105,9 @@ object.
 
 ### Feed object
 
-- `capsule_uri` (string)
-- `feed_uri` (string)
-- `index_uri` (string)
+- `capsule_url` (string)
+- `feed_url` (string)
+- `index_url` (string)
 - `title` (string)
 - `updated` (string, RFC 3339 format)
 - `subtitle` (string, optional)

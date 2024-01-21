@@ -23,8 +23,8 @@
 
 ---
 
-=> {{ feed.index_uri }} Posts
-=> {{ feed.capsule_uri }} Home
+=> {{ feed.index_url }} Posts
+=> {{ feed.capsule_url }} Home
 
 {% if entry.rights %}
 {{ entry.rights }}

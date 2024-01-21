@@ -12,7 +12,7 @@
 {% endif %}
 
 {% for entry in entries %}
-=> {{ entry.uri }} {{ entry.updated | date(format="%d %b %Y") }} • {{ entry.title }}
+=> {{ entry.url }} {{ entry.updated | date(format="%d %b %Y") }} • {{ entry.title }}
 
 {% if entry.summary %}
 {{ entry.summary }}
@@ -24,7 +24,7 @@
 {% endif %}
 {% endfor %}
 
-=> {{ feed.feed_uri }} Atom feed
+=> {{ feed.feed_url }} Atom feed
 
 ---
 

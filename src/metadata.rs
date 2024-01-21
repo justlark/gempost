@@ -29,7 +29,7 @@ pub struct EntryMetadata {
     pub draft: Option<bool>,
 }
 
-fn is_uri(s: &str) -> bool {
+fn is_url(s: &str) -> bool {
     Url::parse(s).is_ok()
 }
 
@@ -58,7 +58,7 @@ impl EntryMetadata {
     }
 
     fn validate(&self, path: &Path) -> eyre::Result<()> {
-        if !is_uri(&self.id) {
+        if !is_url(&self.id) {
             bail!(Error::InvalidMetadataFile {
                 path: path.to_owned(),
                 reason: String::from("The post `id` must be a valid URI."),

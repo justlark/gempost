@@ -34,7 +34,7 @@ pub struct EntryTemplateData {
     #[serde(skip)]
     pub path: String,
     pub id: String,
-    pub uri: String,
+    pub url: String,
     pub title: String,
     pub body: String,
     pub updated: String,
@@ -112,7 +112,7 @@ impl From<Entry> for EntryTemplateData {
         Self {
             path: params.path,
             id: params.metadata.id,
-            uri: params.url.to_string(),
+            url: params.url.to_string(),
             title: params.metadata.title,
             body: params.body,
             updated: params.metadata.updated,
@@ -249,9 +249,9 @@ impl EntryTemplateData {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct FeedTemplateData {
-    pub capsule_uri: String,
-    pub feed_uri: String,
-    pub index_uri: String,
+    pub capsule_url: String,
+    pub feed_url: String,
+    pub index_url: String,
     pub title: String,
     pub updated: String,
     pub subtitle: Option<String>,
@@ -262,10 +262,10 @@ pub struct FeedTemplateData {
 
 impl FeedTemplateData {
     pub fn from_config(config: &Config, warn_handler: impl Fn(&str)) -> eyre::Result<Self> {
-        let capsule_url = match Url::parse(&config.uri) {
+        let capsule_url = match Url::parse(&config.url) {
             Ok(url) => url,
             Err(_) => bail!(Error::InvalidCapsuleUrl {
-                url: config.uri.to_owned(),
+                url: config.url.to_owned(),
             }),
         };
 
@@ -313,9 +313,9 @@ impl FeedTemplateData {
         index_url.set_path(&config.index_path);
 
         Ok(FeedTemplateData {
-            capsule_uri: config.uri.clone(),
-            feed_uri: feed_url.to_string(),
-            index_uri: index_url.to_string(),
+            capsule_url: config.url.clone(),
+            feed_url: feed_url.to_string(),
+            index_url: index_url.to_string(),
             title: config.title.clone(),
             updated: last_updated,
             subtitle: config.subtitle.clone(),

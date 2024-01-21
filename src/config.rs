@@ -27,7 +27,7 @@ pub struct Config {
     #[serde(default = "defaults::feed_path")]
     pub feed_path: String,
     pub title: String,
-    pub uri: String,
+    pub url: String,
     pub subtitle: Option<String>,
     pub rights: Option<String>,
     pub author: Option<AuthorMetadata>,
