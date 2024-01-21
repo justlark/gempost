@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 
@@ -29,8 +30,10 @@ impl From<AuthorMetadata> for AuthorTemplateData {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct EntryTemplateData {
+    #[serde(skip)]
+    pub slug: String,
     pub uri: String,
     pub title: String,
     pub body: String,
@@ -97,22 +100,32 @@ fn check_mismatched_post_files(
     Ok(())
 }
 
-impl EntryTemplateData {
-    fn from_metadata(metadata: EntryMetadata, body: String, url: Url) -> Self {
+struct Entry {
+    metadata: EntryMetadata,
+    body: String,
+    url: Url,
+    slug: String,
+}
+
+impl From<Entry> for EntryTemplateData {
+    fn from(params: Entry) -> Self {
         Self {
-            uri: url.to_string(),
-            title: metadata.title,
-            body,
-            updated: metadata.updated,
-            summary: metadata.summary,
-            published: metadata.published,
-            author: metadata.author.map(AuthorMetadata::into),
-            rights: metadata.rights,
-            lang: metadata.lang,
-            categories: metadata.categories.unwrap_or_default(),
+            slug: params.slug,
+            uri: params.url.to_string(),
+            title: params.metadata.title,
+            body: params.body,
+            updated: params.metadata.updated,
+            summary: params.metadata.summary,
+            published: params.metadata.published,
+            author: params.metadata.author.map(AuthorMetadata::into),
+            rights: params.metadata.rights,
+            lang: params.metadata.lang,
+            categories: params.metadata.categories.unwrap_or_default(),
         }
     }
+}
 
+impl EntryTemplateData {
     fn from_post_paths(
         post_paths: &HashSet<PathBuf>,
         url_gen: impl Fn(&EntryMetadata, &str) -> eyre::Result<Url>,
@@ -144,7 +157,12 @@ impl EntryTemplateData {
 
             let post_url = url_gen(&post_metadata, &post_slug)?;
 
-            entries.push(Self::from_metadata(post_metadata, post_body, post_url));
+            entries.push(Self::from(Entry {
+                metadata: post_metadata,
+                body: post_body,
+                url: post_url,
+                slug: post_slug.into_owned(),
+            }));
         }
 
         Ok(entries)
@@ -222,7 +240,7 @@ impl EntryTemplateData {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct FeedTemplateData {
     pub title: String,
     pub updated: String,
