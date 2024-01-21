@@ -24,6 +24,8 @@
 {% endif %}
 {% endfor %}
 
+=> {{ feed.feed_uri }} Atom feed
+
 ---
 
 {% if feed.rights %}
