@@ -222,25 +222,53 @@ pub struct FeedTemplateData {
     pub entries: Vec<EntryTemplateData>,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum FeedTemplateKind {
+    Index,
+    Feed,
+}
+
 impl FeedTemplateData {
-    pub fn render(&self, template: &Path, output: &Path) -> eyre::Result<()> {
+    pub fn render(
+        &self,
+        template: &Path,
+        output: &Path,
+        kind: FeedTemplateKind,
+    ) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
         if let Err(err) = tera.add_template_file(template, Some("index")) {
-            bail!(Error::InvalidIndexPageTemplate {
-                reason: err.to_string(),
-            });
+            match kind {
+                FeedTemplateKind::Index => bail!(Error::InvalidIndexPageTemplate {
+                    reason: err.to_string(),
+                }),
+                FeedTemplateKind::Feed => {
+                    bail!("There was an issue generating the Atom feed. This is a bug.")
+                }
+            }
         }
 
         let mut context = Context::new();
         context.insert("feed", self);
 
-        let dest_file = File::create(output).wrap_err("failed creating gemlog index page file")?;
+        let dest_file = match kind {
+            FeedTemplateKind::Index => {
+                File::create(output).wrap_err("failed creating gemlog index page file")?
+            }
+            FeedTemplateKind::Feed => {
+                File::create(output).wrap_err("failed creating gemlog atom feed file")?
+            }
+        };
 
         if let Err(err) = tera.render_to("index", &context, dest_file) {
-            bail!(Error::InvalidIndexPageTemplate {
-                reason: err.to_string(),
-            });
+            match kind {
+                FeedTemplateKind::Index => bail!(Error::InvalidIndexPageTemplate {
+                    reason: err.to_string(),
+                }),
+                FeedTemplateKind::Feed => {
+                    bail!("There was an issue generating the Atom feed. This is a bug.")
+                }
+            };
         }
 
         Ok(())
