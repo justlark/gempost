@@ -11,24 +11,24 @@ use crate::metadata::AuthorMetadata;
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default = "defaults::public_dir")]
-    public_dir: PathBuf,
+    pub public_dir: PathBuf,
     #[serde(default = "defaults::static_dir")]
-    static_dir: PathBuf,
+    pub static_dir: PathBuf,
     #[serde(default = "defaults::posts_dir")]
-    posts_dir: PathBuf,
+    pub posts_dir: PathBuf,
     #[serde(default = "defaults::index_template_file")]
-    index_template_file: PathBuf,
+    pub index_template_file: PathBuf,
     #[serde(default = "defaults::post_template_file")]
-    post_template_file: PathBuf,
+    pub post_template_file: PathBuf,
     #[serde(default = "defaults::post_path")]
-    post_path: String,
+    pub post_path: String,
     #[serde(default = "defaults::feed_path")]
-    feed_path: String,
-    title: String,
-    uri: String,
-    subtitle: Option<String>,
-    rights: Option<String>,
-    author: Option<AuthorMetadata>,
+    pub feed_path: String,
+    pub title: String,
+    pub uri: String,
+    pub subtitle: Option<String>,
+    pub rights: Option<String>,
+    pub author: Option<AuthorMetadata>,
 }
 
 mod defaults {

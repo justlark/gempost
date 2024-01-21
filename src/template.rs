@@ -2,12 +2,13 @@ use std::collections::HashSet;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 
-use chrono::{DateTime, Datelike};
-use eyre::{bail, WrapErr};
+use chrono::{DateTime, Datelike, Local};
+use eyre::{bail, eyre, WrapErr};
 use serde::{Deserialize, Serialize};
 use tera::{Context, Tera};
 use url::Url;
 
+use crate::config::Config;
 use crate::error::Error;
 use crate::metadata::{AuthorMetadata, EntryMetadata};
 
@@ -112,7 +113,10 @@ impl EntryTemplateData {
         }
     }
 
-    fn from_post_paths(post_paths: &HashSet<PathBuf>, post_url: &Url) -> eyre::Result<Vec<Self>> {
+    fn from_post_paths(
+        post_paths: &HashSet<PathBuf>,
+        url_gen: impl Fn(&EntryMetadata, &str) -> eyre::Result<Url>,
+    ) -> eyre::Result<Vec<Self>> {
         let mut entries = Vec::new();
 
         // By this point, we've already removed post paths from the set that do not have an
@@ -130,11 +134,17 @@ impl EntryTemplateData {
 
             let post_metadata = EntryMetadata::read(&metadata_path)?;
 
-            entries.push(Self::from_metadata(
-                post_metadata,
-                post_body,
-                post_url.to_owned(),
-            ));
+            let post_slug = post_path
+                .file_stem()
+                .ok_or(eyre!(
+                    "This filename does not have a file stem. This is a bug.\n{}",
+                    post_path.to_string_lossy()
+                ))?
+                .to_string_lossy();
+
+            let post_url = url_gen(&post_metadata, &post_slug)?;
+
+            entries.push(Self::from_metadata(post_metadata, post_body, post_url));
         }
 
         Ok(entries)
@@ -142,7 +152,7 @@ impl EntryTemplateData {
 
     pub fn from_posts(
         posts_dir: &Path,
-        post_url: &Url,
+        url_gen: impl Fn(&EntryMetadata, &str) -> eyre::Result<Url>,
         warn_handler: impl Fn(&str),
     ) -> eyre::Result<Vec<Self>> {
         let file_entries = fs::read_dir(posts_dir).wrap_err("failed reading posts directory")?;
@@ -183,7 +193,7 @@ impl EntryTemplateData {
         check_mismatched_post_files(&mut post_paths, &mut metadata_paths, warn_handler)
             .wrap_err("failed checking for mismatched post files")?;
 
-        Self::from_post_paths(&post_paths, post_url)
+        Self::from_post_paths(&post_paths, url_gen)
     }
 
     pub fn render(&self, template: &Path, output: &Path) -> eyre::Result<()> {
@@ -229,6 +239,52 @@ pub enum FeedTemplateKind {
 }
 
 impl FeedTemplateData {
+    pub fn from_config(config: &Config, warn_handler: impl Fn(&str)) -> eyre::Result<Self> {
+        let url_gen = |metadata: &EntryMetadata, slug: &str| -> eyre::Result<Url> {
+            let mut path_url = match Url::parse(&config.uri) {
+                Ok(url) => url,
+                Err(_) => bail!(Error::InvalidCapsuleUrl {
+                    url: config.uri.to_owned(),
+                }),
+            };
+
+            let path_params = PostPathTemplateData::from(PostPathParams {
+                slug: slug.to_owned(),
+                published: metadata
+                    .published
+                    .as_ref()
+                    .map(|published| DateTime::parse_from_rfc3339(published).wrap_err(format!("Published date is not in RFC 3339 format, even though we've already checked. This is a bug.\n{}", published)))
+                    .transpose()?,
+            });
+
+            path_params.render(&mut path_url, &config.post_path)?;
+
+            Ok(path_url)
+        };
+
+        let entries = EntryTemplateData::from_posts(&config.posts_dir, url_gen, warn_handler)?;
+
+        // Get the time the most recently updated post was updated.
+        let last_updated = entries
+            .iter()
+            .max_by_key(|entry| &entry.updated)
+            .map(|entry| entry.updated.clone())
+            .unwrap_or(Local::now().to_rfc3339());
+
+        Ok(FeedTemplateData {
+            title: config.title.clone(),
+            updated: last_updated,
+            subtitle: config.subtitle.clone(),
+            rights: config.rights.clone(),
+            author: config
+                .author
+                .as_ref()
+                .cloned()
+                .map(AuthorTemplateData::from),
+            entries,
+        })
+    }
+
     pub fn render(
         &self,
         template: &Path,
@@ -277,9 +333,8 @@ impl FeedTemplateData {
 
 #[derive(Debug)]
 pub struct PostPathParams {
-    template: String,
     slug: String,
-    published: DateTime<chrono::FixedOffset>,
+    published: Option<DateTime<chrono::FixedOffset>>,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -293,9 +348,18 @@ pub struct PostPathTemplateData {
 impl From<PostPathParams> for PostPathTemplateData {
     fn from(params: PostPathParams) -> Self {
         Self {
-            year: format!("{:0>4}", params.published.year()),
-            month: format!("{:0>2}", params.published.month()),
-            day: format!("{:0>2}", params.published.day()),
+            year: params
+                .published
+                .map(|published| format!("{:0>4}", published.year()))
+                .unwrap_or_default(),
+            month: params
+                .published
+                .map(|published| format!("{:0>2}", published.month()))
+                .unwrap_or_default(),
+            day: params
+                .published
+                .map(|published| format!("{:0>2}", published.day()))
+                .unwrap_or_default(),
             slug: params.slug,
         }
     }

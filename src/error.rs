@@ -28,4 +28,7 @@ pub enum Error {
 
     #[error("The post path template in your gempost.yaml is invalid.\nTemplate: `{template}`\n\n{reason}")]
     InvalidPostPath { template: String, reason: String },
+
+    #[error("The capsule URL you provided is not a valid URL: {url}")]
+    InvalidCapsuleUrl { url: String },
 }

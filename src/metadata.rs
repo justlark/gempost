@@ -8,7 +8,7 @@ use url::Url;
 
 use crate::error::Error;
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct AuthorMetadata {
     pub name: String,
     pub email: Option<String>,
