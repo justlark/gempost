@@ -4,33 +4,34 @@ use std::{fs::File, path::Path};
 
 use eyre::bail;
 use serde::Deserialize;
+use url::Url;
 
 use crate::error::Error;
 use crate::metadata::AuthorMetadata;
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
-pub struct Config {
+struct RawConfig {
     #[serde(default = "defaults::public_dir")]
-    pub public_dir: PathBuf,
+    public_dir: PathBuf,
     #[serde(default = "defaults::static_dir")]
-    pub static_dir: PathBuf,
+    static_dir: PathBuf,
     #[serde(default = "defaults::posts_dir")]
-    pub posts_dir: PathBuf,
+    posts_dir: PathBuf,
     #[serde(default = "defaults::index_template_file")]
-    pub index_template_file: PathBuf,
+    index_template_file: PathBuf,
     #[serde(default = "defaults::post_template_file")]
-    pub post_template_file: PathBuf,
+    post_template_file: PathBuf,
     #[serde(default = "defaults::post_path")]
-    pub post_path: String,
+    post_path: String,
     #[serde(default = "defaults::index_path")]
-    pub index_path: String,
+    index_path: String,
     #[serde(default = "defaults::feed_path")]
-    pub feed_path: String,
-    pub title: String,
-    pub url: String,
-    pub subtitle: Option<String>,
-    pub rights: Option<String>,
-    pub author: Option<AuthorMetadata>,
+    feed_path: String,
+    title: String,
+    url: String,
+    subtitle: Option<String>,
+    rights: Option<String>,
+    author: Option<AuthorMetadata>,
 }
 
 mod defaults {
@@ -69,8 +70,8 @@ mod defaults {
     }
 }
 
-impl Config {
-    pub fn read(path: &Path) -> eyre::Result<Self> {
+impl RawConfig {
+    fn read(path: &Path) -> eyre::Result<Self> {
         let config_file = match File::open(path) {
             Ok(file) => file,
             Err(err) if err.kind() == io::ErrorKind::NotFound => {
@@ -88,5 +89,50 @@ impl Config {
                 reason: err.to_string(),
             }),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct Config {
+    pub public_dir: PathBuf,
+    pub static_dir: PathBuf,
+    pub posts_dir: PathBuf,
+    pub index_template_file: PathBuf,
+    pub post_template_file: PathBuf,
+    pub post_path: String,
+    pub index_path: String,
+    pub feed_path: String,
+    pub title: String,
+    pub url: Url,
+    pub subtitle: Option<String>,
+    pub rights: Option<String>,
+    pub author: Option<AuthorMetadata>,
+}
+
+impl TryFrom<RawConfig> for Config {
+    type Error = eyre::Report;
+
+    fn try_from(raw: RawConfig) -> eyre::Result<Self> {
+        Ok(Self {
+            public_dir: raw.public_dir,
+            static_dir: raw.static_dir,
+            posts_dir: raw.posts_dir,
+            index_template_file: raw.index_template_file,
+            post_template_file: raw.post_template_file,
+            post_path: raw.post_path,
+            index_path: raw.index_path,
+            feed_path: raw.feed_path,
+            title: raw.title,
+            url: Url::parse(&raw.url).map_err(|_| Error::InvalidCapsuleUrl { url: raw.url })?,
+            subtitle: raw.subtitle,
+            rights: raw.rights,
+            author: raw.author,
+        })
+    }
+}
+
+impl Config {
+    pub fn read(path: &Path) -> eyre::Result<Self> {
+        RawConfig::read(path)?.try_into()
     }
 }

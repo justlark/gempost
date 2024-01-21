@@ -262,15 +262,8 @@ pub struct FeedTemplateData {
 
 impl FeedTemplateData {
     pub fn from_config(config: &Config, warn_handler: impl Fn(&str)) -> eyre::Result<Self> {
-        let capsule_url = match Url::parse(&config.url) {
-            Ok(url) => url,
-            Err(_) => bail!(Error::InvalidCapsuleUrl {
-                url: config.url.to_owned(),
-            }),
-        };
-
         let url_gen = |metadata: &EntryMetadata, slug: &str| -> eyre::Result<Url> {
-            let mut path_url = capsule_url.clone();
+            let mut path_url = config.url.clone();
 
             let path_params = PostPathTemplateData::from(PostPathParams {
                 slug: slug.to_owned(),
@@ -306,14 +299,14 @@ impl FeedTemplateData {
             .map(|entry| entry.updated.clone())
             .unwrap_or(Local::now().to_rfc3339());
 
-        let mut feed_url = capsule_url.clone();
+        let mut feed_url = config.url.clone();
         feed_url.set_path(&config.feed_path);
 
-        let mut index_url = capsule_url.clone();
+        let mut index_url = config.url.clone();
         index_url.set_path(&config.index_path);
 
         Ok(FeedTemplateData {
-            capsule_url: config.url.clone(),
+            capsule_url: config.url.to_string(),
             feed_url: feed_url.to_string(),
             index_url: index_url.to_string(),
             title: config.title.clone(),
