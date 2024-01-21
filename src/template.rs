@@ -150,7 +150,7 @@ impl EntryTemplateData {
         Ok(entries)
     }
 
-    pub fn from_posts(
+    fn from_posts(
         posts_dir: &Path,
         url_gen: impl Fn(&EntryMetadata, &str) -> eyre::Result<Url>,
         warn_handler: impl Fn(&str),
@@ -232,12 +232,6 @@ pub struct FeedTemplateData {
     pub entries: Vec<EntryTemplateData>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum FeedTemplateKind {
-    Index,
-    Feed,
-}
-
 impl FeedTemplateData {
     pub fn from_config(config: &Config, warn_handler: impl Fn(&str)) -> eyre::Result<Self> {
         let url_gen = |metadata: &EntryMetadata, slug: &str| -> eyre::Result<Url> {
@@ -257,7 +251,18 @@ impl FeedTemplateData {
                     .transpose()?,
             });
 
-            path_params.render(&mut path_url, &config.post_path)?;
+            let post_path = path_params.render(&config.post_path)?;
+
+            let mut base_segments = match path_url.path_segments_mut() {
+                Ok(segments) => segments,
+                Err(()) => bail!("capsule base URI cannot be a base URL"),
+            };
+
+            for segment in post_path.split('/') {
+                base_segments.push(segment);
+            }
+
+            drop(base_segments);
 
             Ok(path_url)
         };
@@ -285,46 +290,43 @@ impl FeedTemplateData {
         })
     }
 
-    pub fn render(
-        &self,
-        template: &Path,
-        output: &Path,
-        kind: FeedTemplateKind,
-    ) -> eyre::Result<()> {
+    pub fn render_index(&self, template: &Path, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
         if let Err(err) = tera.add_template_file(template, Some("index")) {
-            match kind {
-                FeedTemplateKind::Index => bail!(Error::InvalidIndexPageTemplate {
-                    reason: err.to_string(),
-                }),
-                FeedTemplateKind::Feed => {
-                    bail!("There was an issue generating the Atom feed. This is a bug.")
-                }
-            }
+            bail!(Error::InvalidIndexPageTemplate {
+                reason: err.to_string()
+            });
         }
 
         let mut context = Context::new();
         context.insert("feed", self);
 
-        let dest_file = match kind {
-            FeedTemplateKind::Index => {
-                File::create(output).wrap_err("failed creating gemlog index page file")?
-            }
-            FeedTemplateKind::Feed => {
-                File::create(output).wrap_err("failed creating gemlog atom feed file")?
-            }
-        };
+        let dest_file = File::create(output).wrap_err("failed creating gemlog index page file")?;
 
         if let Err(err) = tera.render_to("index", &context, dest_file) {
-            match kind {
-                FeedTemplateKind::Index => bail!(Error::InvalidIndexPageTemplate {
-                    reason: err.to_string(),
-                }),
-                FeedTemplateKind::Feed => {
-                    bail!("There was an issue generating the Atom feed. This is a bug.")
-                }
-            };
+            bail!(Error::InvalidIndexPageTemplate {
+                reason: err.to_string(),
+            });
+        }
+
+        Ok(())
+    }
+
+    pub fn render_feed(&self, template: &str, output: &Path) -> eyre::Result<()> {
+        let mut tera = Tera::default();
+
+        if let Err(err) = tera.add_raw_template("index", template) {
+            bail!("There was an issue generating the Atom feed. This is a bug.")
+        }
+
+        let mut context = Context::new();
+        context.insert("feed", self);
+
+        let dest_file = File::create(output).wrap_err("failed creating gemlog atom feed file")?;
+
+        if let Err(err) = tera.render_to("index", &context, dest_file) {
+            bail!("There was an issue generating the Atom feed. This is a bug.");
         }
 
         Ok(())
@@ -366,7 +368,7 @@ impl From<PostPathParams> for PostPathTemplateData {
 }
 
 impl PostPathTemplateData {
-    pub fn render(&self, base_url: &mut Url, template: &str) -> eyre::Result<()> {
+    pub fn render(&self, template: &str) -> eyre::Result<String> {
         let mut tera = Tera::default();
 
         if let Err(err) = tera.add_raw_template("path", template) {
@@ -382,25 +384,12 @@ impl PostPathTemplateData {
         context.insert("day", &self.day);
         context.insert("slug", &self.slug);
 
-        let raw_path = match tera.render("path", &context) {
-            Ok(raw_path) => raw_path,
+        match tera.render("path", &context) {
+            Ok(path) => Ok(path),
             Err(err) => bail!(Error::InvalidPostPath {
                 template: template.to_owned(),
                 reason: err.to_string(),
             }),
-        };
-
-        let mut base_segments = match base_url.path_segments_mut() {
-            Ok(segments) => segments,
-            Err(()) => bail!("capsule base URI cannot be a base URL"),
-        };
-
-        for segment in raw_path.split('/') {
-            base_segments.push(segment);
         }
-
-        drop(base_segments);
-
-        Ok(())
     }
 }

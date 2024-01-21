@@ -22,6 +22,8 @@ pub struct Config {
     pub post_template_file: PathBuf,
     #[serde(default = "defaults::post_path")]
     pub post_path: String,
+    #[serde(default = "defaults::index_path")]
+    pub index_path: String,
     #[serde(default = "defaults::feed_path")]
     pub feed_path: String,
     pub title: String,
@@ -56,6 +58,10 @@ mod defaults {
 
     pub fn post_path() -> String {
         String::from("/posts/{{ slug }}")
+    }
+
+    pub fn index_path() -> String {
+        String::from("/posts/index.gmi")
     }
 
     pub fn feed_path() -> String {

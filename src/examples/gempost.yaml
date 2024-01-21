@@ -29,6 +29,9 @@ post_template_file: "./templates/post.tera"
 # https://keats.github.io/tera/docs/#templates
 post_path: "/posts/{{ slug }}"
 
+# The URI path of the index page for your gemlog (required).
+index_path: "/posts/index.gmi"
+
 # The URI path to serve your capsule's Atom feed at (required).
 feed_path: "/posts/atom.xml"
 
