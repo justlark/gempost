@@ -105,6 +105,7 @@ object.
 
 ### Feed object
 
+- `capsule_uri` (string)
 - `feed_uri` (string)
 - `index_uri` (string)
 - `title` (string)

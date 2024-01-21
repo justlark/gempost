@@ -249,7 +249,7 @@ impl EntryTemplateData {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct FeedTemplateData {
-    pub id: String,
+    pub capsule_uri: String,
     pub feed_uri: String,
     pub index_uri: String,
     pub title: String,
@@ -313,7 +313,7 @@ impl FeedTemplateData {
         index_url.set_path(&config.index_path);
 
         Ok(FeedTemplateData {
-            id: config.uri.clone(),
+            capsule_uri: config.uri.clone(),
             feed_uri: feed_url.to_string(),
             index_uri: index_url.to_string(),
             title: config.title.clone(),

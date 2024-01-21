@@ -23,8 +23,8 @@
 
 ---
 
-=> Posts gemini://example.com/posts/
-=> Home gemini://example.com/
+=> {{ feed.index_uri }} Posts
+=> {{ feed.capsule_uri }} Home
 
 {% if entry.rights %}
 {{ entry.rights }}

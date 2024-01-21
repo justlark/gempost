@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <id>{{ feed.id }}</id>
+  <id>{{ feed.capsule_uri }}</id>
   <title>{{ feed.title }}</title>
   {% if feed.subtitle %}
     <subtitle>{{ feed.subtitle }}</subtitle>
