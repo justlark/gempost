@@ -111,3 +111,11 @@ object.
 - `rights` (string, optional)
 - `author` (Author object, optional)
 - `entries` (array of Entry objects)
+
+## Similar tools
+
+Check out these other static site generators for gemlogs.
+
+- [gloggery](https://github.com/kconner/gloggery)
+- [gssg](https://git.sr.ht/~gsthnz/gssg)
+- [kiln](https://git.sr.ht/~adnano/kiln)
