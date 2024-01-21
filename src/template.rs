@@ -32,7 +32,7 @@ impl From<AuthorMetadata> for AuthorTemplateData {
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct EntryTemplateData {
     #[serde(skip)]
-    pub slug: String,
+    pub path: String,
     pub id: String,
     pub uri: String,
     pub title: String,
@@ -104,13 +104,13 @@ struct Entry {
     metadata: EntryMetadata,
     body: String,
     url: Url,
-    slug: String,
+    path: String,
 }
 
 impl From<Entry> for EntryTemplateData {
     fn from(params: Entry) -> Self {
         Self {
-            slug: params.slug,
+            path: params.path,
             id: params.metadata.id,
             uri: params.url.to_string(),
             title: params.metadata.title,
@@ -162,12 +162,13 @@ impl EntryTemplateData {
                 .to_string_lossy();
 
             let post_url = url_gen(&post_metadata, &post_slug)?;
+            let post_path = post_url.path().to_owned();
 
             entries.push(Self::from(Entry {
                 metadata: post_metadata,
                 body: post_body,
                 url: post_url,
-                slug: post_slug.into_owned(),
+                path: post_path,
             }));
         }
 

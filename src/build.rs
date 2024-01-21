@@ -83,7 +83,8 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     // Generate individual posts.
 
     for entry in &feed_data.entries {
-        let post_path = config.public_dir.join(&entry.slug);
+        let post_path = url_path_to_file_path(&config.public_dir, &entry.path);
+
         entry
             .render(&config.post_template_file, &post_path)
             .wrap_err(format!(
