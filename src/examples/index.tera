@@ -8,15 +8,13 @@
   Here is the documentation for the gemsub format:
   https://geminiprotocol.net/docs/companion/subscription.gmi
 #}
-
 # {{ feed.title }}
 
-{% if feed.subtitle %}
+{% if feed.subtitle -%}
 ## {{ feed.subtitle }}
-{% endif %}
+{%- endif %}
 
-{% for entry in feed.entries %}
+{% for entry in feed.entries -%}
 => {{ entry.uri }} {{ entry.updated | date(format="%Y-%m-%d") }} - {{ entry.title }}
 {% endfor %}
-
 => {{ feed.feed_uri }} Atom feed
