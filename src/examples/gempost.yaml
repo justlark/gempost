@@ -1,7 +1,7 @@
-# The directory to generate the site at (required).
+# The directory to generate the capsule at (required).
 public_dir: "./public/"
 
-# The directory for static assets that are copied to the generated site
+# The directory for static assets that are copied to the generated capsule
 # verbatim (required).
 static_dir: "./static/"
 

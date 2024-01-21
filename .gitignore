@@ -2,3 +2,6 @@
 /target/
 **/*.rs.bk
 *.pdb
+
+# This directory is for local testing.
+/capsule/

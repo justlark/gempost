@@ -60,7 +60,7 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
     Ok(())
 }
 
-pub fn build_site(config: &Config) -> eyre::Result<()> {
+pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     let warn_handler = |msg: &str| eprintln!("{}", msg);
 
     let feed_data = FeedTemplateData::from_config(config, warn_handler)

@@ -10,9 +10,12 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use clap::Parser;
-use cli::Cli;
-use error::Error;
+use eyre::WrapErr;
 
+use crate::build::build_capsule;
+use crate::cli::Cli;
+use crate::config::Config;
+use crate::error::Error;
 use crate::init::init_project;
 
 fn run() -> eyre::Result<()> {
@@ -20,11 +23,17 @@ fn run() -> eyre::Result<()> {
 
     match args.command {
         cli::Commands::Init(init) => {
-            init_project(init.directory.as_deref().unwrap_or(Path::new(".")))?;
+            init_project(init.directory.as_deref().unwrap_or(Path::new(".")))
+                .wrap_err("failed initializing the project")?;
 
             println!("Remember to edit the `gempost.yaml` to set your capsule's title and URI!")
         }
-        cli::Commands::Build(_) => todo!(),
+        cli::Commands::Build(build) => {
+            let config = Config::read(&build.config_file)
+                .wrap_err("failed reading the gempost config file")?;
+
+            build_capsule(&config).wrap_err("failed building the capsule")?;
+        }
     }
 
     Ok(())
