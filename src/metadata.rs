@@ -3,19 +3,19 @@ use std::path::Path;
 
 use chrono::DateTime;
 use eyre::bail;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use url::Url;
 
 use crate::error::Error;
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct AuthorMetadata {
     pub name: String,
     pub email: Option<String>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct EntryMetadata {
     pub id: String,
     pub title: String,

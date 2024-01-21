@@ -3,12 +3,12 @@ use std::path::PathBuf;
 use std::{fs::File, path::Path};
 
 use eyre::bail;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::error::Error;
 use crate::metadata::AuthorMetadata;
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Config {
     #[serde(default = "defaults::public_dir")]
     pub public_dir: PathBuf,
