@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 
@@ -334,18 +333,16 @@ impl FeedTemplateData {
     pub fn render_feed(&self, template: &str, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
-        if let Err(err) = tera.add_raw_template("index", template) {
-            bail!("There was an issue generating the Atom feed. This is a bug.")
-        }
+        tera.add_raw_template("index", template)
+            .wrap_err("There was an issue generating the Atom feed. This is a bug.")?;
 
         let mut context = Context::new();
         context.insert("feed", self);
 
         let dest_file = File::create(output).wrap_err("failed creating gemlog atom feed file")?;
 
-        if let Err(err) = tera.render_to("index", &context, dest_file) {
-            bail!("There was an issue generating the Atom feed. This is a bug.");
-        }
+        tera.render_to("index", &context, dest_file)
+            .wrap_err("There was an issue generating the Atom feed. This is a bug.")?;
 
         Ok(())
     }
