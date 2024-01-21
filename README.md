@@ -105,6 +105,8 @@ object.
 
 ### Feed object
 
+- `feed_uri` (string)
+- `index_uri` (string)
 - `title` (string)
 - `updated` (string, RFC 3339 format)
 - `subtitle` (string, optional)

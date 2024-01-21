@@ -78,7 +78,7 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     let feed_path = url_path_to_file_path(&config.public_dir, &config.feed_path);
     feed_data
         .render_feed(FEED_TEMPLATE, &feed_path)
-        .wrap_err("failed rendering atom feed")?;
+        .wrap_err("failed rendering Atom feed")?;
 
     // Generate individual posts.
 

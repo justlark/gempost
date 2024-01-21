@@ -26,7 +26,7 @@ pub struct EntryMetadata {
     pub rights: Option<String>,
     pub lang: Option<String>,
     pub categories: Option<Vec<String>>,
-    pub draft: bool,
+    pub draft: Option<bool>,
 }
 
 fn is_uri(s: &str) -> bool {

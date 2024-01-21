@@ -33,6 +33,7 @@ impl From<AuthorMetadata> for AuthorTemplateData {
 pub struct EntryTemplateData {
     #[serde(skip)]
     pub slug: String,
+    pub id: String,
     pub uri: String,
     pub title: String,
     pub body: String,
@@ -110,6 +111,7 @@ impl From<Entry> for EntryTemplateData {
     fn from(params: Entry) -> Self {
         Self {
             slug: params.slug,
+            id: params.metadata.id,
             uri: params.url.to_string(),
             title: params.metadata.title,
             body: params.body,
@@ -145,6 +147,11 @@ impl EntryTemplateData {
             .wrap_err("gemtext post body is not valid UTF-8")?;
 
             let post_metadata = EntryMetadata::read(&metadata_path)?;
+
+            // If the `draft` property is missing, it's not a draft.
+            if post_metadata.draft.unwrap_or(false) {
+                continue;
+            }
 
             let post_slug = post_path
                 .file_stem()
@@ -241,6 +248,9 @@ impl EntryTemplateData {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct FeedTemplateData {
+    pub id: String,
+    pub feed_uri: String,
+    pub index_uri: String,
     pub title: String,
     pub updated: String,
     pub subtitle: Option<String>,
@@ -251,13 +261,15 @@ pub struct FeedTemplateData {
 
 impl FeedTemplateData {
     pub fn from_config(config: &Config, warn_handler: impl Fn(&str)) -> eyre::Result<Self> {
+        let capsule_url = match Url::parse(&config.uri) {
+            Ok(url) => url,
+            Err(_) => bail!(Error::InvalidCapsuleUrl {
+                url: config.uri.to_owned(),
+            }),
+        };
+
         let url_gen = |metadata: &EntryMetadata, slug: &str| -> eyre::Result<Url> {
-            let mut path_url = match Url::parse(&config.uri) {
-                Ok(url) => url,
-                Err(_) => bail!(Error::InvalidCapsuleUrl {
-                    url: config.uri.to_owned(),
-                }),
-            };
+            let mut path_url = capsule_url.clone();
 
             let path_params = PostPathTemplateData::from(PostPathParams {
                 slug: slug.to_owned(),
@@ -293,7 +305,16 @@ impl FeedTemplateData {
             .map(|entry| entry.updated.clone())
             .unwrap_or(Local::now().to_rfc3339());
 
+        let mut feed_url = capsule_url.clone();
+        feed_url.set_path(&config.feed_path);
+
+        let mut index_url = capsule_url.clone();
+        index_url.set_path(&config.index_path);
+
         Ok(FeedTemplateData {
+            id: config.uri.clone(),
+            feed_uri: feed_url.to_string(),
+            index_uri: index_url.to_string(),
             title: config.title.clone(),
             updated: last_updated,
             subtitle: config.subtitle.clone(),
@@ -319,6 +340,12 @@ impl FeedTemplateData {
         let mut context = Context::new();
         context.insert("feed", self);
 
+        let parent_dir = output.parent().ok_or(eyre!(
+            "Could not get parent directory of index page file. This is a bug."
+        ))?;
+
+        fs::create_dir_all(parent_dir).wrap_err("failed creating parent directory")?;
+
         let dest_file = File::create(output).wrap_err("failed creating gemlog index page file")?;
 
         if let Err(err) = tera.render_to("index", &context, dest_file) {
@@ -333,16 +360,22 @@ impl FeedTemplateData {
     pub fn render_feed(&self, template: &str, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
-        tera.add_raw_template("index", template)
+        tera.add_raw_template("feed", template)
             .wrap_err("There was an issue generating the Atom feed. This is a bug.")?;
 
         let mut context = Context::new();
         context.insert("feed", self);
 
-        let dest_file = File::create(output).wrap_err("failed creating gemlog atom feed file")?;
+        let parent_dir = output.parent().ok_or(eyre!(
+            "Could not get parent directory of Atom feed file. This is a bug."
+        ))?;
 
-        tera.render_to("index", &context, dest_file)
-            .wrap_err("There was an issue generating the Atom feed. This is a bug.")?;
+        fs::create_dir_all(parent_dir).wrap_err("failed creating parent directory")?;
+
+        let dest_file = File::create(output).wrap_err("failed creating gemlog Atom feed file")?;
+
+        tera.render_to("feed", &context, dest_file)
+            .wrap_err("failed generating the Atom feed")?;
 
         Ok(())
     }
