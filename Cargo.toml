@@ -2,7 +2,7 @@
 name = "gempost"
 version = "0.1.0"
 edition = "2021"
-description = "A simple static site generator for creating a gemlog on the Gemini protocol"
+description = "A simple static site generator for creating a blog on the Gemini protocol"
 authors = ["Lark <lark@lark.gay>"]
 homepage = "https://github.com/justlark/gempost"
 repository = "https://github.com/justlark/gempost"
