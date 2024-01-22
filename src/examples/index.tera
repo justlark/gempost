@@ -7,8 +7,7 @@
 
   Here is the documentation for the gemsub format:
   https://geminiprotocol.net/docs/companion/subscription.gmi
-#}
-# {{ feed.title }}
+#}# {{ feed.title }}
 
 {% if feed.subtitle -%}
 ## {{ feed.subtitle }}

@@ -4,8 +4,7 @@
   This example adds a header with the title from the sidecar YAML metadata
   file, some metadata at the top of the post body, and a footer with navigation
   links and the copyright/license information.
-#}
-# {{ entry.title }}
+#}# {{ entry.title }}
 
 {% if entry.published -%}
 * Originally Posted: {{ entry.published | date(format="%d %b %Y") }}
