@@ -71,17 +71,21 @@ available inside these template.
 
 ## Examples
 
-Running `gempost init` will generate minimal index and post page templates you
-can use to get started. These examples make use of more of the post metadata to
-provide more rich output. You can use these verbatim, or use them as examples
-to write your own.
+Running `gempost init` will generate minimal index page and post page templates
+you can use to get started. These will probably be fine for most users.
+
+However, if you want to see more complex examples of what you can do with
+templates, the examples below make use of more of the post metadata to provide
+more rich output. You can use these templates as-is, or as a guide to write
+your own.
 
 - See [examples/index.tera](./examples/index.tera) for an example of an index
   page template.
 - See [examples/post.tera](./examples/post.tera) for an example of a post page
   template.
-- See [examples/metadata.yaml](./examples/metadata.yaml) for an example of a
-  sidecar gemlog post metadata file showing all the possible fields.
+
+Additionally, see [examples/metadata.yaml](./examples/metadata.yaml) for an
+example of a sidecar gemlog post metadata file showing all the possible fields.
 
 ## Templates
 
