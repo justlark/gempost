@@ -2,6 +2,14 @@
 name = "gempost"
 version = "0.1.0"
 edition = "2021"
+description = "A simple static site generator for creating a gemlog on the Gemini protocol"
+authors = ["Lark <lark@lark.gay>"]
+homepage = "https://github.com/justlark/gempost"
+repository = "https://github.com/justlark/gempost"
+readme = "README.md"
+license = "MIT"
+keywords = ["gemini", "gemlog"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 chrono = { version = "0.4.31", default-features = false, features = ["alloc"] }
