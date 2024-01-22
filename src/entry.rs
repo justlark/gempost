@@ -216,6 +216,7 @@ impl Entry {
 
             let post_metadata = EntryMetadata::read(&metadata_path)?;
 
+            // We do not publish drafts.
             if post_metadata.draft {
                 continue;
             }

@@ -131,7 +131,7 @@ impl FeedTemplateData {
         let mut tera = Tera::default();
 
         tera.add_raw_template("feed", template)
-            .wrap_err("There was an issue generating the Atom feed. This is a bug.")?;
+            .wrap_err("The bundled Atom feed template is invalid. This is a bug.")?;
 
         let mut context = Context::new();
         context.insert("feed", self);
@@ -168,6 +168,7 @@ pub struct PostPathTemplateData {
 impl From<PostPathParams> for PostPathTemplateData {
     fn from(params: PostPathParams) -> Self {
         Self {
+            // If there is no publish date, these are empty strings.
             year: params
                 .published
                 .map(|published| format!("{:0>4}", published.year()))

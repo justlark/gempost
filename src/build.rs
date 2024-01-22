@@ -15,6 +15,7 @@ fn url_to_filepath(base_path: &Path, url_path: &str) -> PathBuf {
     ))
 }
 
+// Recursively copy a directory.
 fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
     fs::create_dir_all(dest).wrap_err("failed creating dest directory")?;
 
