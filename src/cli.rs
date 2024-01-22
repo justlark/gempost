@@ -13,7 +13,7 @@ pub struct Cli {
 pub struct Init {
     /// The directory to create the new project in
     ///
-    /// If the directory exists, it must be empty.
+    /// This will not overwrite any files already in the directory.
     pub directory: Option<PathBuf>,
 }
 

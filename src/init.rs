@@ -6,6 +6,11 @@ use eyre::{bail, WrapErr};
 
 use crate::error::Error;
 
+// We need to use conditional compilation here because `include_str` interprets the path in a
+// platform-specific way at compile time.
+//
+// https://doc.rust-lang.org/std/macro.include_str.html
+
 #[cfg(windows)]
 const CONFIG_FILE: &str = include_str!(r"examples\gempost.yaml");
 
