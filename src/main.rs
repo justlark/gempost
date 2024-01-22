@@ -27,7 +27,7 @@ fn run() -> eyre::Result<()> {
             init_project(init.directory.as_deref().unwrap_or(Path::new(".")))
                 .wrap_err("failed initializing the project")?;
 
-            println!("Remember to edit the `gempost.yaml` to set your capsule's title and URI!")
+            println!("Remember to edit the `gempost.yaml` to set your capsule's title and URL!")
         }
         cli::Commands::Build(build) => {
             let config = Config::read(&build.config_file)

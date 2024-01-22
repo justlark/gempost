@@ -35,7 +35,7 @@ gempost init ./capsule/
 This will create a directory `./capsule/` and populate it with:
 
 - An example `gempost.yaml` config file to get you started. You'll need to edit
-  this to set your capsule's title and URI.
+  this to set your capsule's title and URL.
 - Some basic templates you can use as-is or customize.
 - A "hello world" example post for your gemlog, with its accompanying sidecar
   metadata file.

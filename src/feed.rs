@@ -53,7 +53,7 @@ impl Feed {
 
             let mut url_segments = match post_url.path_segments_mut() {
                 Ok(segments) => segments,
-                Err(()) => bail!("capsule base URI cannot be a base URL"),
+                Err(()) => bail!("capsule URL cannot be a base URL"),
             };
 
             let mut post_filepath = PathBuf::new();

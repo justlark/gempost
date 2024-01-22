@@ -3,7 +3,7 @@
 # metadata values.
 #
 
-# A universally unique URI that will never change. I recommend using a UUID.
+# A universally unique URI that will never change. We recommend using a UUID.
 id: "urn:uuid:165b10e8-78c9-45ba-83ef-2f7bd5d89725"
 
 # The title of your post.

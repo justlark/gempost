@@ -17,7 +17,7 @@ index_template_file: "./templates/index.tera"
 # (required).
 post_template_file: "./templates/post.tera"
 
-# A Tera template which specifies the URI path for posts (required).
+# A Tera template which specifies the URL path for posts (required).
 #
 # This template has access to the following variables:
 # - `year`: The four-digit year of publication, if a publication date was provided
@@ -29,16 +29,16 @@ post_template_file: "./templates/post.tera"
 # https://keats.github.io/tera/docs/#templates
 post_path: "/posts/{{ slug }}.gmi"
 
-# The URI path of the index page for your gemlog (required).
+# The URL path of the index page for your gemlog (required).
 index_path: "/posts/index.gmi"
 
-# The URI path to serve your capsule's Atom feed at (required).
+# The URL path to serve your capsule's Atom feed at (required).
 feed_path: "/posts/atom.xml"
 
 # The title of your gemlog (required).
 #title: "My Gemlog"
 
-# The URI of your capsule's homepage (required).
+# The URL of your capsule's homepage (required).
 #url: "gemini://example.com"
 
 # A subtitle for your gemlog (optional).
