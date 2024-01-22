@@ -94,38 +94,41 @@ All dates are in RFC 3339 format, which looks like this:
 
 ### Author object
 
-- `name` (string)
-- `email` (string, optional)
-- `uri` (string, optional)
+- `name` *(string)* The name of the author
+- `email` *(string, optional)* The author's email address
+- `uri` *(string, optional)* A URI describing the author
 
 ### Entry object
 
-- `url` (string)
-- `title` (string)
-- `body` (string)
-- `updated` (string)
-- `summary` (string, optional)
-- `published` (string, optional)
-- `author` (Author object, optional)
-- `rights` (string, optional)
-- `lang` (string, optional)
-- `categories` (array of strings)
+- `url` *(string)* The URL of the post
+- `title` *(string)* The title of the post
+- `body` *(string)* The gemtext body of the post
+- `updated` *(string)* When the post was last updated
+- `summary` *(string, optional)* The summary of the post
+- `published` *(string, optional)* When the post was originally published
+- `author` *(Author object, optional)* The author of the post
+- `rights` *(string, optional)* The copyright and license information for the post
+- `lang` *(string, optional)* The ISO 639 language code for the language the
+  post is written in (e.g. `en`, `de`)
+- `categories` *(array of strings)* The list of categories the post belongs to
 
 ### Feed object
 
-- `capsule_url` (string)
-- `feed_url` (string)
-- `index_url` (string)
-- `title` (string)
-- `updated` (string)
-- `subtitle` (string, optional)
-- `rights` (string, optional)
-- `author` (Author object, optional)
-- `entries` (array of Entry objects)
+- `capsule_url` *(string)* The URL of your capsule's homepage
+- `feed_url` *(string)* The URL of the Atom feed
+- `index_url` *(string)* The URL of the gemlog index page
+- `title` *(string)* The title of the feed
+- `updated` *(string)* When any post in the feed was last updated
+- `subtitle` *(string, optional)* The subtitle of the feed
+- `rights` *(string, optional)* The copyright and license information for the feed
+- `author` *(Author object, optional)* The primary author of the feed
+- `entries` *(array of Entry objects)* The list of posts in the feed, sorted
+  reverse-chronologically by publish date or, if no publish date, last updated
+  date
 
 ## Similar tools
 
-Check out these other static site generators for gemlogs.
+Check out these other static site generators for gemlogs:
 
 - [gloggery](https://github.com/kconner/gloggery)
 - [gssg](https://git.sr.ht/~gsthnz/gssg)
