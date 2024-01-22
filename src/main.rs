@@ -30,8 +30,8 @@ fn run() -> eyre::Result<()> {
             println!("Remember to edit the `gempost.yaml` to set your capsule's title and URL!")
         }
         cli::Commands::Build(build) => {
-            let config = Config::read(&build.config_file)
-                .wrap_err("failed reading the gempost config file")?;
+            let config =
+                Config::read(&build.config).wrap_err("failed reading the gempost config file")?;
 
             build_capsule(&config).wrap_err("failed building the capsule")?;
         }
