@@ -13,7 +13,8 @@ title: "Hello World"
 updated: "2024-01-11T09:41:00-05:00"
 
 # A brief summary of your post. (optional)
-summary: "My first post on Gemini"
+summary: >-
+  My first post on Gemini!
 
 # When your post was originally published. (optional)
 published: "2024-01-11T08:35:00-05:00"

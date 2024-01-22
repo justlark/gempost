@@ -14,6 +14,7 @@
 
 {% if entry.summary -%}
 {{ entry.summary }}
+
 {% endif -%}
 
 {%- if entry.categories -%}
