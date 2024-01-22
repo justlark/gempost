@@ -65,7 +65,12 @@ impl From<Entry> for EntryTemplateData {
 }
 
 impl EntryTemplateData {
-    pub fn render(&self, template: &Path, output: &Path) -> eyre::Result<()> {
+    pub fn render(
+        &self,
+        feed: &FeedTemplateData,
+        template: &Path,
+        output: &Path,
+    ) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
         if let Err(err) = tera.add_template_file(template, Some("post")) {
@@ -77,6 +82,7 @@ impl EntryTemplateData {
 
         let mut context = Context::new();
         context.insert("entry", self);
+        context.insert("feed", feed);
 
         let dest_file = File::create(output).wrap_err("failed creating gemlog post page file")?;
 

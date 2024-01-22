@@ -79,10 +79,18 @@ available inside these template.
 
 ## Templates
 
-The index page template has access to a `feed` variable which is a Feed object.
+The index page template has access to:
+- A `feed` variable which is a Feed object.
 
-The post page template has access to an `entry` variable which is an Entry
-object.
+The post page template has access to:
+- A `feed` variable which is a Feed object.
+- An `entry` variable which is an Entry object for the current post.
+
+All dates are in RFC 3339 format, which looks like this:
+
+```
+2006-01-02T15:04:05Z07:00
+```
 
 ### Author object
 
@@ -95,13 +103,13 @@ object.
 - `url` (string)
 - `title` (string)
 - `body` (string)
+- `updated` (string)
 - `summary` (string, optional)
-- `updated` (string, RFC 3339 format)
-- `published` (string, RFC 3339 format, optional)
+- `published` (string, optional)
 - `author` (Author object, optional)
 - `rights` (string, optional)
 - `lang` (string, optional)
-- `categories` (array of strings, optional)
+- `categories` (array of strings)
 
 ### Feed object
 
@@ -109,7 +117,7 @@ object.
 - `feed_url` (string)
 - `index_url` (string)
 - `title` (string)
-- `updated` (string, RFC 3339 format)
+- `updated` (string)
 - `subtitle` (string, optional)
 - `rights` (string, optional)
 - `author` (Author object, optional)

@@ -18,10 +18,10 @@
 * Categories: {{ entry.categories | join(sep=", ") }}
 {% endif %}
 {{ entry.body }}
----
+─────
 
-=> gemini://example.com/posts/ Posts
-=> gemini://example.com/ Home
+=> {{ feed.index_url }} Posts
+=> {{ feed.capsule_url }} Home
 
 {% if entry.rights -%}
 {{ entry.rights }}

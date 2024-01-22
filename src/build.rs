@@ -87,7 +87,7 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
         let post_path = config.public_dir.join(&entry.path);
 
         EntryTemplateData::from(entry)
-            .render(&config.post_template_file, &post_path)
+            .render(&feed_data, &config.post_template_file, &post_path)
             .wrap_err(format!(
                 "failed rendering post: {}",
                 post_path.to_string_lossy()

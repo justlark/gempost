@@ -24,9 +24,10 @@
 
 {%- endfor -%}
 
-=> {{ feed.feed_url }} Atom feed
+─────
 
----
+=> {{ feed.feed_url }} Atom feed
+=> {{ feed.capsule_url }} Home
 
 {% if feed.rights -%}
 {{ feed.rights }}
