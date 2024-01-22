@@ -2,7 +2,9 @@
   This is an example of a Tera template for your gemlog's index page.
 
   This example provides more rich output that makes use of more of the metadata
-  provided in the sidecar YAML files, such as post summaries.
+  provided in the sidecar YAML files, such as post summaries and categories. It
+  also adds a footer with a link to the Atom feed, capsule homepage, and
+  copyright/license information.
 #}
 # {{ feed.title }}
 
