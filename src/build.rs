@@ -67,7 +67,7 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
 }
 
 pub fn build_capsule(config: &Config) -> eyre::Result<()> {
-    let warn_handler = |msg: &str| eprintln!("{}", msg);
+    let warn_handler = |msg: &str| eprintln!("Warning: {}", msg);
 
     let feed = Feed::from_config(config, warn_handler).wrap_err("failed parsing config file")?;
     let feed_data = FeedTemplateData::from(feed.clone());
