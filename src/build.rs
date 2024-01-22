@@ -59,7 +59,7 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
             std::os::unix::fs::symlink(link_dest, &dest_path)
                 .wrap_err("failed creating symlink in dest dir")?;
         } else {
-            bail!("unrecognized file type in static directory");
+            bail!("There is a file in the static directory which is not a regular file, directory, or symbolic link.");
         }
     }
 
@@ -72,21 +72,35 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     let feed = Feed::from_config(config, warn_handler).wrap_err("failed parsing config file")?;
     let feed_data = FeedTemplateData::from(feed.clone());
 
-    // Generate index page.
+    // Delete the public dir. We do this because static files might have been removed since the
+    // last build, and posts might have been removed or converted to drafts. It's easier to just
+    // start with a new empty directory.
+
+    match fs::remove_dir_all(&config.public_dir) {
+        // The public dir not existing is not an error.
+        Err(err) if err.kind() != io::ErrorKind::NotFound => {
+            Err(err).wrap_err("failed removing the public directory")?
+        }
+        _ => {}
+    }
+
+    fs::create_dir_all(&config.public_dir).wrap_err("failed creating the public directory")?;
+
+    // Generate the index page.
 
     let index_page_path = url_to_filepath(&config.public_dir, &config.index_path);
     feed_data
         .render_index(&config.index_template_file, &index_page_path)
         .wrap_err("failed rendering index page")?;
 
-    // Generate Atom feed.
+    // Generate the Atom feed.
 
     let feed_path = url_to_filepath(&config.public_dir, &config.feed_path);
     feed_data
         .render_feed(FEED_TEMPLATE, &feed_path)
         .wrap_err("failed rendering Atom feed")?;
 
-    // Generate individual posts.
+    // Generate the individual posts.
 
     for entry in feed.entries {
         let post_path = config.public_dir.join(&entry.path);
@@ -99,7 +113,7 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
             ))?;
     }
 
-    // Copy over static content
+    // Copy over static content. This clobbers any files generated in previous steps.
 
     copy_dir(&config.static_dir, &config.public_dir)
         .wrap_err("failed copying static content to the public directory")?;
