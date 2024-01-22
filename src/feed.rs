@@ -1,3 +1,4 @@
+use std::cmp;
 use std::path::PathBuf;
 
 use chrono::{DateTime, FixedOffset, Local};
@@ -70,13 +71,19 @@ impl Feed {
             })
         };
 
-        let entries = Entry::from_posts(&config.posts_dir, locator, warn_handler)?;
+        let mut entries = Entry::from_posts(&config.posts_dir, locator, warn_handler)?;
+
+        // Sort entries in reverse-chronological order by publish time or, if there is no publish
+        // time by last updated time.
+        entries.sort_by_key(|entry| {
+            cmp::Reverse(entry.metadata.published.unwrap_or(entry.metadata.updated))
+        });
 
         // Get the time the most recently updated post was updated.
         let last_updated = entries
             .iter()
             .max_by_key(|entry| entry.metadata.updated)
-            .map(|entry| entry.metadata.updated)
+            .map(|entry| entry.metadata.updated.clone())
             .unwrap_or_else(|| Local::now().fixed_offset());
 
         let mut feed_url = config.url.clone();
