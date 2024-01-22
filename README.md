@@ -108,7 +108,7 @@ All dates are in RFC 3339 format, which looks like this:
 - `published` *(string, optional)* When the post was originally published
 - `author` *(Author object, optional)* The author of the post
 - `rights` *(string, optional)* The copyright and license information for the post
-- `lang` *(string, optional)* The ISO 639 language code for the language the
+- `lang` *(string, optional)* The RFC 5646 language code for the language the
   post is written in (e.g. `en`, `de`)
 - `categories` *(array of strings)* The list of categories the post belongs to
 
