@@ -5,12 +5,13 @@ use eyre::{bail, WrapErr};
 
 use crate::config::Config;
 use crate::error::Error;
-use crate::template::FeedTemplateData;
+use crate::feed::Feed;
+use crate::template::{EntryTemplateData, FeedTemplateData};
 
 const FEED_TEMPLATE: &str = include_str!("atom.xml.tera");
 
-fn url_path_to_file_path(file_path: &Path, url_path: &str) -> PathBuf {
-    file_path.join(PathBuf::from_iter(
+fn url_to_filepath(base_path: &Path, url_path: &str) -> PathBuf {
+    base_path.join(PathBuf::from_iter(
         url_path.split('/').filter(|segment| !segment.is_empty()),
     ))
 }
@@ -63,29 +64,29 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
 pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     let warn_handler = |msg: &str| eprintln!("{}", msg);
 
-    let feed_data = FeedTemplateData::from_config(config, warn_handler)
-        .wrap_err("failed parsing config file")?;
+    let feed = Feed::from_config(config, warn_handler).wrap_err("failed parsing config file")?;
+    let feed_data = FeedTemplateData::from(feed.clone());
 
     // Generate index page.
 
-    let index_page_path = url_path_to_file_path(&config.public_dir, &config.index_path);
+    let index_page_path = url_to_filepath(&config.public_dir, &config.index_path);
     feed_data
         .render_index(&config.index_template_file, &index_page_path)
         .wrap_err("failed rendering index page")?;
 
     // Generate Atom feed.
 
-    let feed_path = url_path_to_file_path(&config.public_dir, &config.feed_path);
+    let feed_path = url_to_filepath(&config.public_dir, &config.feed_path);
     feed_data
         .render_feed(FEED_TEMPLATE, &feed_path)
         .wrap_err("failed rendering Atom feed")?;
 
     // Generate individual posts.
 
-    for entry in &feed_data.entries {
-        let post_path = url_path_to_file_path(&config.public_dir, &entry.path);
+    for entry in feed.entries {
+        let post_path = config.public_dir.join(&entry.path);
 
-        entry
+        EntryTemplateData::from(entry)
             .render(&config.post_template_file, &post_path)
             .wrap_err(format!(
                 "failed rendering post: {}",
@@ -95,9 +96,8 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
 
     // Copy over static content
 
-    copy_dir(&config.static_dir, &config.public_dir).wrap_err(
-        "failed copying static content from the static directory to the public directory",
-    )?;
+    copy_dir(&config.static_dir, &config.public_dir)
+        .wrap_err("failed copying static content to the public directory")?;
 
     Ok(())
 }

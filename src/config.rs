@@ -2,12 +2,18 @@ use std::io;
 use std::path::PathBuf;
 use std::{fs::File, path::Path};
 
-use eyre::bail;
+use eyre::{bail, WrapErr};
 use serde::Deserialize;
 use url::Url;
 
 use crate::error::Error;
-use crate::metadata::AuthorMetadata;
+
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+pub struct RawAuthorConfig {
+    pub name: String,
+    pub email: Option<String>,
+    pub uri: Option<String>,
+}
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 struct RawConfig {
@@ -31,7 +37,7 @@ struct RawConfig {
     url: String,
     subtitle: Option<String>,
     rights: Option<String>,
-    author: Option<AuthorMetadata>,
+    author: Option<RawAuthorConfig>,
 }
 
 mod defaults {
@@ -92,6 +98,23 @@ impl RawConfig {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuthorConfig {
+    pub name: String,
+    pub email: Option<String>,
+    pub uri: Option<String>,
+}
+
+impl From<RawAuthorConfig> for AuthorConfig {
+    fn from(raw: RawAuthorConfig) -> Self {
+        Self {
+            name: raw.name,
+            email: raw.email,
+            uri: raw.uri,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Config {
     pub public_dir: PathBuf,
@@ -106,13 +129,13 @@ pub struct Config {
     pub url: Url,
     pub subtitle: Option<String>,
     pub rights: Option<String>,
-    pub author: Option<AuthorMetadata>,
+    pub author: Option<AuthorConfig>,
 }
 
-impl TryFrom<RawConfig> for Config {
-    type Error = eyre::Report;
+impl Config {
+    pub fn read(path: &Path) -> eyre::Result<Self> {
+        let raw = RawConfig::read(path).wrap_err("failed reading config file")?;
 
-    fn try_from(raw: RawConfig) -> eyre::Result<Self> {
         Ok(Self {
             public_dir: raw.public_dir,
             static_dir: raw.static_dir,
@@ -126,13 +149,7 @@ impl TryFrom<RawConfig> for Config {
             url: Url::parse(&raw.url).map_err(|_| Error::InvalidCapsuleUrl { url: raw.url })?,
             subtitle: raw.subtitle,
             rights: raw.rights,
-            author: raw.author,
+            author: raw.author.map(Into::into),
         })
-    }
-}
-
-impl Config {
-    pub fn read(path: &Path) -> eyre::Result<Self> {
-        RawConfig::read(path)?.try_into()
     }
 }

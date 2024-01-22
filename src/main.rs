@@ -1,9 +1,10 @@
 mod build;
 mod cli;
 mod config;
+mod entry;
 mod error;
+mod feed;
 mod init;
-mod metadata;
 mod template;
 
 use std::path::Path;

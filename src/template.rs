@@ -1,38 +1,34 @@
-use std::collections::HashSet;
 use std::fs::{self, File};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use chrono::{DateTime, Datelike, Local};
+use chrono::{DateTime, Datelike, FixedOffset};
 use eyre::{bail, eyre, WrapErr};
 use serde::{Deserialize, Serialize};
 use tera::{Context, Tera};
-use url::Url;
 
-use crate::config::Config;
+use crate::entry::{AuthorMetadata, Entry};
 use crate::error::Error;
-use crate::metadata::{AuthorMetadata, EntryMetadata};
+use crate::feed::{Feed, FeedAuthor};
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct AuthorTemplateData {
+#[derive(Debug, PartialEq, Eq, Serialize)]
+pub struct EntryAuthorTemplateData {
     pub name: String,
     pub email: Option<String>,
     pub uri: Option<String>,
 }
 
-impl From<AuthorMetadata> for AuthorTemplateData {
-    fn from(metadata: AuthorMetadata) -> Self {
+impl From<AuthorMetadata> for EntryAuthorTemplateData {
+    fn from(value: AuthorMetadata) -> Self {
         Self {
-            name: metadata.name,
-            email: metadata.email,
-            uri: metadata.uri,
+            name: value.name,
+            email: value.email,
+            uri: value.uri,
         }
     }
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct EntryTemplateData {
-    #[serde(skip)]
-    pub path: String,
     pub id: String,
     pub url: String,
     pub title: String,
@@ -40,187 +36,35 @@ pub struct EntryTemplateData {
     pub updated: String,
     pub summary: Option<String>,
     pub published: Option<String>,
-    pub author: Option<AuthorTemplateData>,
+    pub author: Option<EntryAuthorTemplateData>,
     pub rights: Option<String>,
     pub lang: Option<String>,
     pub categories: Vec<String>,
 }
 
-const POST_FILE_EXT: &str = "gmi";
-const METADATA_FILE_EXT: &str = "yaml";
-
-// This returns `None` when either:
-// - There is no filename.
-// - The path is empty or the root path.
-fn change_file_ext(path: &Path, new_ext: &str) -> Option<PathBuf> {
-    let original_filename = path.file_stem()?;
-    let new_filename = format!("{}.{}", original_filename.to_string_lossy(), new_ext);
-    Some(path.parent()?.join(new_filename))
-}
-
-// Remove paths from each set that do not have an accompanying path in the other set. Emit warnings
-// when this happens.
-fn check_mismatched_post_files(
-    post_paths: &mut HashSet<PathBuf>,
-    metadata_paths: &mut HashSet<PathBuf>,
-    warn_handler: impl Fn(&str),
-) -> eyre::Result<()> {
-    for post_path in post_paths.iter() {
-        let maybe_metadata_path = match change_file_ext(post_path, METADATA_FILE_EXT) {
-            Some(path) => path,
-            None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-        };
-
-        if !metadata_paths.contains(&maybe_metadata_path) {
-            warn_handler(&format!(
-                "This gemtext file does not have an accompanying YAML metadata file: {}",
-                post_path.to_string_lossy()
-            ));
-
-            metadata_paths.remove(&maybe_metadata_path);
-        }
-    }
-
-    for metadata_path in metadata_paths.iter() {
-        let maybe_post_path = match change_file_ext(metadata_path, POST_FILE_EXT) {
-            Some(path) => path,
-            None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-        };
-
-        if !post_paths.contains(&maybe_post_path) {
-            warn_handler(&format!(
-                "This YAML metadata file does not have an accompanying gemtext file: {}",
-                metadata_path.to_string_lossy()
-            ));
-
-            post_paths.remove(&maybe_post_path);
-        }
-    }
-
-    Ok(())
-}
-
-struct Entry {
-    metadata: EntryMetadata,
-    body: String,
-    url: Url,
-    path: String,
-}
-
 impl From<Entry> for EntryTemplateData {
     fn from(params: Entry) -> Self {
         Self {
-            path: params.path,
             id: params.metadata.id,
             url: params.url.to_string(),
             title: params.metadata.title,
             body: params.body,
-            updated: params.metadata.updated,
+            updated: params.metadata.updated.to_rfc3339(),
             summary: params.metadata.summary,
-            published: params.metadata.published,
-            author: params.metadata.author.map(AuthorMetadata::into),
+            published: params
+                .metadata
+                .published
+                .as_ref()
+                .map(DateTime::<FixedOffset>::to_rfc3339),
+            author: params.metadata.author.map(Into::into),
             rights: params.metadata.rights,
             lang: params.metadata.lang,
-            categories: params.metadata.categories.unwrap_or_default(),
+            categories: params.metadata.categories,
         }
     }
 }
 
 impl EntryTemplateData {
-    fn from_post_paths(
-        post_paths: &HashSet<PathBuf>,
-        url_gen: impl Fn(&EntryMetadata, &str) -> eyre::Result<Url>,
-    ) -> eyre::Result<Vec<Self>> {
-        let mut entries = Vec::new();
-
-        // By this point, we've already removed post paths from the set that do not have an
-        // accompanying metadata file.
-        for post_path in post_paths {
-            let metadata_path = match change_file_ext(post_path, METADATA_FILE_EXT) {
-                Some(path) => path,
-                None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-            };
-
-            let post_body = String::from_utf8(
-                fs::read(post_path).wrap_err("failed reading gemtext post body")?,
-            )
-            .wrap_err("gemtext post body is not valid UTF-8")?;
-
-            let post_metadata = EntryMetadata::read(&metadata_path)?;
-
-            // If the `draft` property is missing, it's not a draft.
-            if post_metadata.draft.unwrap_or(false) {
-                continue;
-            }
-
-            let post_slug = post_path
-                .file_stem()
-                .ok_or(eyre!(
-                    "This filename does not have a file stem. This is a bug.\n{}",
-                    post_path.to_string_lossy()
-                ))?
-                .to_string_lossy();
-
-            let post_url = url_gen(&post_metadata, &post_slug)?;
-            let post_path = post_url.path().to_owned();
-
-            entries.push(Self::from(Entry {
-                metadata: post_metadata,
-                body: post_body,
-                url: post_url,
-                path: post_path,
-            }));
-        }
-
-        Ok(entries)
-    }
-
-    fn from_posts(
-        posts_dir: &Path,
-        url_gen: impl Fn(&EntryMetadata, &str) -> eyre::Result<Url>,
-        warn_handler: impl Fn(&str),
-    ) -> eyre::Result<Vec<Self>> {
-        let file_entries = fs::read_dir(posts_dir).wrap_err("failed reading posts directory")?;
-
-        let mut post_paths = HashSet::new();
-        let mut metadata_paths = HashSet::new();
-
-        let warn_unexpected_file_ext = |path: &Path| {
-            warn_handler(&format!(
-                "This is not a .gmi or .yaml file: {}",
-                path.as_os_str().to_string_lossy()
-            ));
-        };
-
-        for entry_result in file_entries {
-            let entry_path = entry_result
-                .wrap_err("failed reading posts directory")?
-                .path();
-
-            let path_ext = match entry_path.extension() {
-                Some(extension) => extension,
-                None => {
-                    warn_unexpected_file_ext(&entry_path);
-                    continue;
-                }
-            };
-
-            match path_ext.to_string_lossy().as_ref() {
-                POST_FILE_EXT => post_paths.insert(entry_path),
-                METADATA_FILE_EXT => metadata_paths.insert(entry_path),
-                _ => {
-                    warn_unexpected_file_ext(&entry_path);
-                    continue;
-                }
-            };
-        }
-
-        check_mismatched_post_files(&mut post_paths, &mut metadata_paths, warn_handler)
-            .wrap_err("failed checking for mismatched post files")?;
-
-        Self::from_post_paths(&post_paths, url_gen)
-    }
-
     pub fn render(&self, template: &Path, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
@@ -247,81 +91,7 @@ impl EntryTemplateData {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize)]
-pub struct FeedTemplateData {
-    pub capsule_url: String,
-    pub feed_url: String,
-    pub index_url: String,
-    pub title: String,
-    pub updated: String,
-    pub subtitle: Option<String>,
-    pub rights: Option<String>,
-    pub author: Option<AuthorTemplateData>,
-    pub entries: Vec<EntryTemplateData>,
-}
-
 impl FeedTemplateData {
-    pub fn from_config(config: &Config, warn_handler: impl Fn(&str)) -> eyre::Result<Self> {
-        let url_gen = |metadata: &EntryMetadata, slug: &str| -> eyre::Result<Url> {
-            let mut path_url = config.url.clone();
-
-            let path_params = PostPathTemplateData::from(PostPathParams {
-                slug: slug.to_owned(),
-                published: metadata
-                    .published
-                    .as_ref()
-                    .map(|published| DateTime::parse_from_rfc3339(published).wrap_err(format!("Published date is not in RFC 3339 format, even though we've already checked. This is a bug.\n{}", published)))
-                    .transpose()?,
-            });
-
-            let post_path = path_params.render(&config.post_path)?;
-
-            let mut base_segments = match path_url.path_segments_mut() {
-                Ok(segments) => segments,
-                Err(()) => bail!("capsule base URI cannot be a base URL"),
-            };
-
-            for segment in post_path.split('/') {
-                base_segments.push(segment);
-            }
-
-            drop(base_segments);
-
-            Ok(path_url)
-        };
-
-        let entries = EntryTemplateData::from_posts(&config.posts_dir, url_gen, warn_handler)?;
-
-        // Get the time the most recently updated post was updated.
-        let last_updated = entries
-            .iter()
-            .max_by_key(|entry| &entry.updated)
-            .map(|entry| entry.updated.clone())
-            .unwrap_or(Local::now().to_rfc3339());
-
-        let mut feed_url = config.url.clone();
-        feed_url.set_path(&config.feed_path);
-
-        let mut index_url = config.url.clone();
-        index_url.set_path(&config.index_path);
-
-        Ok(FeedTemplateData {
-            capsule_url: config.url.to_string(),
-            feed_url: feed_url.to_string(),
-            index_url: index_url.to_string(),
-            title: config.title.clone(),
-            updated: last_updated,
-            subtitle: config.subtitle.clone(),
-            rights: config.rights.clone(),
-            author: config
-                .author
-                .as_ref()
-                .cloned()
-                .map(AuthorTemplateData::from),
-            entries,
-        })
-    }
-
     pub fn render_index(&self, template: &Path, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
@@ -377,8 +147,8 @@ impl FeedTemplateData {
 
 #[derive(Debug)]
 pub struct PostPathParams {
-    slug: String,
-    published: Option<DateTime<chrono::FixedOffset>>,
+    pub slug: String,
+    pub published: Option<DateTime<chrono::FixedOffset>>,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -432,6 +202,52 @@ impl PostPathTemplateData {
                 template: template.to_owned(),
                 reason: err.to_string(),
             }),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize)]
+pub struct FeedAuthorTemplateData {
+    pub name: String,
+    pub email: Option<String>,
+    pub uri: Option<String>,
+}
+
+impl From<FeedAuthor> for FeedAuthorTemplateData {
+    fn from(value: FeedAuthor) -> Self {
+        Self {
+            name: value.name,
+            email: value.email,
+            uri: value.uri,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize)]
+pub struct FeedTemplateData {
+    pub capsule_url: String,
+    pub feed_url: String,
+    pub index_url: String,
+    pub title: String,
+    pub updated: String,
+    pub subtitle: Option<String>,
+    pub rights: Option<String>,
+    pub author: Option<FeedAuthorTemplateData>,
+    pub entries: Vec<EntryTemplateData>,
+}
+
+impl From<Feed> for FeedTemplateData {
+    fn from(feed: Feed) -> Self {
+        Self {
+            capsule_url: feed.capsule_url.to_string(),
+            feed_url: feed.feed_url.to_string(),
+            index_url: feed.index_url.to_string(),
+            title: feed.title,
+            updated: feed.updated.to_rfc3339(),
+            subtitle: feed.subtitle,
+            rights: feed.rights,
+            author: feed.author.map(Into::into),
+            entries: feed.entries.into_iter().map(Into::into).collect(),
         }
     }
 }
