@@ -12,14 +12,18 @@
 
 {% for entry in feed.entries -%}
 => {{ entry.url }} {{ entry.updated | date(format="%d %b %Y") }} • {{ entry.title }}
-{% if entry.summary %}
+
+{% if entry.summary -%}
 {{ entry.summary }}
 {% endif -%}
+
 {%- if entry.categories -%}
 {% for category in entry.categories %}#{{ category }}{% if not loop.last %} {% endif %}{% endfor %}
 
-{% endif -%}
+{% endif %}
+
 {%- endfor -%}
+
 => {{ feed.feed_url }} Atom feed
 
 ---
