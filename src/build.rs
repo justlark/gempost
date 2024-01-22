@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use eyre::{bail, WrapErr};
 
 use crate::config::Config;
-use crate::error::Error;
 use crate::feed::Feed;
 use crate::template::{EntryTemplateData, FeedTemplateData};
 
@@ -30,20 +29,16 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
         let dest_path = dest.join(src_path.strip_prefix(src)?);
 
         if file_type.is_file() {
-            if dest_path
-                .try_exists()
-                .wrap_err("failed checking if dest file exists")?
-            {
-                bail!(Error::StaticPathConflict { path: dest_path });
-            }
-
-            fs::copy(src_path, dest_path).wrap_err("failed copying regular file")?;
+            // Truncate the dest file if it already exists.
+            fs::copy(&src_path, &dest_path).wrap_err("failed copying regular file")?;
         } else if file_type.is_dir() {
-            fs::create_dir(&dest_path).wrap_err("failed creating new directory in dest dir")?;
+            // Don't fail if the dest dir already exists.
+            fs::create_dir_all(&dest_path).wrap_err("failed creating new directory in dest dir")?;
 
+            // Recursively copy contents.
             copy_dir(&src_path, &dest_path)?;
         } else if file_type.is_symlink() {
-            let link_dest = fs::read_link(src_path).wrap_err("failed reading link dest")?;
+            let link_dest = fs::read_link(&src_path).wrap_err("failed reading link dest")?;
 
             if !cfg!(target_family = "unix") {
                 bail!(
@@ -51,8 +46,12 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
                 );
             }
 
+            fs::remove_file(&dest_path)
+                .wrap_err("failed removing original symlink so we can create a new one")?;
+
             #[cfg(target_family = "unix")]
-            std::os::unix::fs::symlink(link_dest, dest_path).wrap_err("failed creating symlink")?;
+            std::os::unix::fs::symlink(link_dest, &dest_path)
+                .wrap_err("failed creating symlink in dest dir")?;
         } else {
             bail!("unrecognized file type in static directory");
         }
