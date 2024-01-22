@@ -4,30 +4,26 @@
   This example provides more rich output that makes use of more of the metadata
   provided in the sidecar YAML files, such as post summaries.
 #}
-
 # {{ feed.title }}
 
-{% if feed.subtitle %}
+{% if feed.subtitle -%}
 ## {{ feed.subtitle }}
-{% endif %}
+{%- endif %}
 
-{% for entry in entries %}
+{% for entry in feed.entries -%}
 => {{ entry.url }} {{ entry.updated | date(format="%d %b %Y") }} • {{ entry.title }}
-
 {% if entry.summary %}
 {{ entry.summary }}
+{% endif -%}
+{%- if entry.categories -%}
+{% for category in entry.categories %}#{{ category }}{% if not loop.last %} {% endif %}{% endfor %}
 
-{% endif %}
-{% if entry.categories %}
-{% for category of entry.categories %}#{{ category }}{% if not loop.last %} {% endif %}{% endfor %}
-
-{% endif %}
-{% endfor %}
-
+{% endif -%}
+{%- endfor -%}
 => {{ feed.feed_url }} Atom feed
 
 ---
 
-{% if feed.rights %}
+{% if feed.rights -%}
 {{ feed.rights }}
-{% endif %}
+{%- endif %}
