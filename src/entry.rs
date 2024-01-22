@@ -152,29 +152,19 @@ fn change_file_ext(path: &Path, new_ext: &str) -> Option<PathBuf> {
     Some(path.parent()?.join(new_filename))
 }
 
+struct PostPathPair {
+    gemtext: PathBuf,
+    metadata: PathBuf,
+}
+
 // Remove paths from each set that do not have an accompanying path in the other set. Emit warnings
 // when this happens.
 fn check_mismatched_post_files(
-    post_paths: &mut HashSet<PathBuf>,
-    metadata_paths: &mut HashSet<PathBuf>,
+    post_paths: HashSet<PathBuf>,
+    metadata_paths: &HashSet<PathBuf>,
     warn_handler: impl Fn(&str),
-) -> eyre::Result<()> {
-    for post_path in post_paths.iter() {
-        let maybe_metadata_path = match change_file_ext(post_path, METADATA_FILE_EXT) {
-            Some(path) => path,
-            None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-        };
-
-        if !metadata_paths.contains(&maybe_metadata_path) {
-            warn_handler(&format!(
-                "This gemtext file does not have an accompanying YAML metadata file: {}",
-                post_path.to_string_lossy()
-            ));
-
-            metadata_paths.remove(&maybe_metadata_path);
-        }
-    }
-
+) -> eyre::Result<Vec<PostPathPair>> {
+    // Warn about metadata files that don't have an accompanying gemtext file.
     for metadata_path in metadata_paths.iter() {
         let maybe_post_path = match change_file_ext(metadata_path, POST_FILE_EXT) {
             Some(path) => path,
@@ -186,46 +176,65 @@ fn check_mismatched_post_files(
                 "This YAML metadata file does not have an accompanying gemtext file: {}",
                 metadata_path.to_string_lossy()
             ));
-
-            post_paths.remove(&maybe_post_path);
         }
     }
 
-    Ok(())
+    let mut pairs = Vec::new();
+
+    // Filter out gemtext files that don't have an accompanying metadata file.
+    for post_path in post_paths.into_iter() {
+        let maybe_metadata_path = match change_file_ext(&post_path, METADATA_FILE_EXT) {
+            Some(path) => path,
+            None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
+        };
+
+        if metadata_paths.contains(&maybe_metadata_path) {
+            pairs.push(PostPathPair {
+                gemtext: post_path,
+                metadata: maybe_metadata_path,
+            });
+        } else {
+            warn_handler(&format!(
+                "This gemtext file does not have an accompanying YAML metadata file: {}",
+                post_path.to_string_lossy()
+            ));
+        }
+    }
+
+    Ok(pairs)
 }
 
 impl Entry {
     fn from_post_paths(
-        post_paths: &HashSet<PathBuf>,
+        path_pairs: &Vec<PostPathPair>,
         locator: impl Fn(PostLocationParams) -> eyre::Result<PostLocation>,
     ) -> eyre::Result<Vec<Self>> {
         let mut entries = Vec::new();
 
         // By this point, we've already removed post paths from the set that do not have an
         // accompanying metadata file.
-        for post_path in post_paths {
-            let metadata_path = match change_file_ext(post_path, METADATA_FILE_EXT) {
-                Some(path) => path,
-                None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-            };
-
+        for PostPathPair {
+            gemtext: gemtext_path,
+            metadata: metadata_path,
+        } in path_pairs
+        {
             let post_body = String::from_utf8(
-                fs::read(post_path).wrap_err("failed reading gemtext post body")?,
+                fs::read(gemtext_path).wrap_err("failed reading gemtext post body")?,
             )
             .wrap_err("gemtext post body is not valid UTF-8")?;
 
-            let post_metadata = EntryMetadata::read(&metadata_path)?;
+            let post_metadata = EntryMetadata::read(metadata_path)?;
 
-            // We do not publish drafts.
+            // We do not publish draft posts.
             if post_metadata.draft {
                 continue;
             }
 
-            let post_slug = post_path
+            let post_slug = gemtext_path
                 .file_stem()
                 .ok_or(eyre!(
                     "This filename does not have a file stem. This is a bug.\n{}",
-                    post_path.to_string_lossy()
+                    gemtext_path.to_string_lossy()
                 ))?
                 .to_string_lossy();
 
@@ -285,9 +294,9 @@ impl Entry {
             };
         }
 
-        check_mismatched_post_files(&mut post_paths, &mut metadata_paths, warn_handler)
+        let path_pairs = check_mismatched_post_files(post_paths, &metadata_paths, warn_handler)
             .wrap_err("failed checking for mismatched post files")?;
 
-        Self::from_post_paths(&post_paths, locator)
+        Self::from_post_paths(&path_pairs, locator)
     }
 }
