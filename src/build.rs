@@ -1,4 +1,5 @@
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 
 use eyre::{bail, WrapErr};
@@ -47,8 +48,12 @@ fn copy_dir(src: &Path, dest: &Path) -> eyre::Result<()> {
                 );
             }
 
-            fs::remove_file(&dest_path)
-                .wrap_err("failed removing original symlink so we can create a new one")?;
+            // Overwrite the original symlink if it exists. Do nothing if it does not.
+            match fs::remove_file(&dest_path) {
+                Err(err) if err.kind() != io::ErrorKind::NotFound => Err(err)
+                    .wrap_err("failed removing original symlink so we can create a new one")?,
+                _ => {}
+            }
 
             #[cfg(target_family = "unix")]
             std::os::unix::fs::symlink(link_dest, &dest_path)
