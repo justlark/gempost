@@ -83,7 +83,7 @@ impl Feed {
         let last_updated = entries
             .iter()
             .max_by_key(|entry| entry.metadata.updated)
-            .map(|entry| entry.metadata.updated.clone())
+            .map(|entry| entry.metadata.updated)
             .unwrap_or_else(|| Local::now().fixed_offset());
 
         let mut feed_url = config.url.clone();

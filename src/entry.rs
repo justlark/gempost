@@ -233,12 +233,12 @@ impl Entry {
                 slug: &post_slug,
             })?;
 
-            entries.push(Self::from(Entry {
+            entries.push(Entry {
                 metadata: post_metadata,
                 body: post_body,
                 url: post_location.url,
                 path: post_location.path,
-            }));
+            });
         }
 
         Ok(entries)
