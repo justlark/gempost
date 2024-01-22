@@ -28,7 +28,7 @@ cargo install --git https://github.com/justlark/gempost.git gempost
 You can initialize a new gempost project like this:
 
 ```shell
-gempost init ./capsule/
+gempost init ./capsule
 ```
 
 This will create a directory `./capsule/` and populate it with:
