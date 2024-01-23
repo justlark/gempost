@@ -10,7 +10,7 @@
 {%- endif %}
 
 {% for entry in feed.entries -%}
-=> {{ entry.url }} {{ entry.updated | date(format="%d %b %Y") }} • {{ entry.title }}
+=> {{ entry.url }} {{ entry.published | default(value=entry.updated) | date(format="%d %b %Y") }} • {{ entry.title }}
 
 {% if entry.summary -%}
 {{ entry.summary }}
