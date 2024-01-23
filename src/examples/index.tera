@@ -11,7 +11,8 @@
 
 {% if feed.subtitle -%}
 ## {{ feed.subtitle }}
-{%- endif %}
+
+{% endif -%}
 
 {% for entry in feed.entries -%}
 => {{ entry.url }} {{ entry.updated | date(format="%Y-%m-%d") }} - {{ entry.title }}
