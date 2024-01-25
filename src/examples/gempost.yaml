@@ -38,7 +38,7 @@ feed_path: "/posts/atom.xml"
 # The title of your gemlog (required).
 #title: "My Gemlog"
 
-# The URL of your capsule's homepage (required).
+# The gemini:// URL of your capsule's homepage (required).
 #url: "gemini://example.com"
 
 # A subtitle for your gemlog (optional).
