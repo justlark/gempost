@@ -35,7 +35,22 @@ You can initialize a new gempost project like this:
 gempost init ./capsule
 ```
 
-This will create a directory `./capsule/` and populate it with:
+This will create a directory `./capsule/` that looks like this:
+
+```
+capsule/
+├── gempost.yaml
+├── posts/
+│   ├── hello-world.gmi
+│   └── hello-world.yaml
+├── static/
+│   └── index.gmi
+└── templates/
+    ├── index.tera
+    └── post.tera
+```
+
+This includes:
 
 - An example `gempost.yaml` config file to get you started. You'll need to edit
   this to set your capsule's title and URL.
