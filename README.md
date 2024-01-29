@@ -24,7 +24,7 @@ Rust](https://www.rust-lang.org/tools/install). Then, you can install gempost
 with Cargo.
 
 ```shell
-cargo install --git https://github.com/justlark/gempost.git gempost
+cargo install gempost
 ```
 
 ### Creating a new gempost project
