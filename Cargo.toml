@@ -10,6 +10,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["gemini", "gemlog"]
 categories = ["command-line-utilities"]
+rust-version = "1.74.0"
 
 [dependencies]
 chrono = { version = "0.4.31", default-features = false, features = ["alloc"] }
