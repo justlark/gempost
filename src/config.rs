@@ -64,7 +64,7 @@ mod defaults {
     }
 
     pub fn post_path() -> String {
-        String::from("/posts/{{ slug }}")
+        String::from("/posts/{{ slug }}.gmi")
     }
 
     pub fn index_path() -> String {
