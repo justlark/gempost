@@ -24,6 +24,16 @@ pub struct Build {
     pub config: PathBuf,
 }
 
+#[derive(Args, Clone)]
+pub struct New {
+    /// The URL slug of the post to create
+    pub slug: String,
+
+    /// The path of the gempost config file
+    #[arg(short, long, value_name = "PATH", default_value = "./gempost.yaml")]
+    pub config: PathBuf,
+}
+
 #[derive(Subcommand, Clone)]
 pub enum Commands {
     /// Create a new gempost project
@@ -35,4 +45,9 @@ pub enum Commands {
     ///
     /// This builds the gempost project in your current working directory.
     Build(Build),
+
+    /// Create a new post
+    ///
+    /// This generates an empty gemtext file and YAML metadata file, automatically assigning a post ID.
+    New(New),
 }
