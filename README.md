@@ -76,10 +76,10 @@ list of Gemini servers.
 
 ### Creating a new post
 
-You can add new posts to your gemlog by creating a `.gmi` file in the
-`./posts/` directory with an accompanying `.yaml` file with the same filename.
-See [examples/metadata.yaml](./examples/metadata.yaml) for an example of all
-the different values you can set in the YAML metadata file. Only some are
+You can add a new post to your gemlog with `gempost new <slug>`. This creates a
+`.gmi` file in the `./posts/` directory with an accompanying `.yaml` metadata
+file. See [examples/metadata.yaml](./examples/metadata.yaml) for an example of
+all the different values you can set in the YAML metadata file. Only some are
 required.
 
 ### Adding static content
@@ -97,34 +97,6 @@ directory from their defaults. They use the
 similar to the popular Jinja templating language. See the
 [Templates](#templates) section below for a list of all the variables that are
 available inside these template.
-
-### Suggestions
-
-Here are some miscellaneous suggestions for working with gempost.
-
-You can check your gempost project directory into a VCS of your choice if you
-like; just make sure you configure it to ignore the `./public/` directory!
-
-If your Gemini server expects to find your capsule in a particular directory,
-you can change the location of the `./public/` directory from its default in
-the `gempost.yaml`. Note that file paths in the `gempost.yaml` do not support
-tilde expansion.
-
-Every post must have a unique ID to generate the Atom feed. Atom require that
-this be a globally unique URI that never ever changes. So, as an alternative to
-using your post URL, which might change, you can use a UUID URN:
-
-```
-urn:uuid:165b10e8-78c9-45ba-83ef-2f7bd5d89725
-```
-
-Each post must have a time last updated and, optionally, time originally
-published. To get the current time in RFC 3339 format—the format gempost
-expects—you can use this command on \*nix platforms:
-
-```shell
-date --rfc-3339 seconds
-```
 
 ## Examples
 
@@ -192,6 +164,36 @@ All dates are in RFC 3339 format, which looks like this:
 - `entries` *(array of Entry objects)* The list of posts in the feed, sorted
   reverse-chronologically by publish date or, if no publish date, last updated
   date
+
+## Suggestions
+
+Here are some miscellaneous suggestions for working with gempost.
+
+You can check your gempost project directory into a VCS of your choice if you
+like; just make sure you configure it to ignore the `./public/` directory!
+
+If your Gemini server expects to find your capsule in a particular directory,
+you can change the location of the `./public/` directory from its default in
+the `gempost.yaml`. Note that file paths in the `gempost.yaml` do not support
+tilde expansion.
+
+Every post must have a unique ID to generate the Atom feed. Atom require that
+this be a globally unique URI that never ever changes. So, as an alternative to
+using your post URL, which might change, you can use a UUID URN:
+
+```
+urn:uuid:165b10e8-78c9-45ba-83ef-2f7bd5d89725
+```
+
+Running `gempost new` will automatically assign a UUID post ID.
+
+Each post must have a time last updated and, optionally, time originally
+published. To get the current time in RFC 3339 format—the format gempost
+expects—you can use this command on \*nix platforms:
+
+```shell
+date --rfc-3339 seconds
+```
 
 ## Similar tools
 
