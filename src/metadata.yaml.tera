@@ -1,0 +1,4 @@
+id: "{{ id }}"
+title: ""
+published: "{{ timestamp }}"
+updated: "{{ timestamp }}"

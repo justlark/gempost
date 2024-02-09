@@ -20,6 +20,9 @@ pub enum Error {
     #[error("You cannot initialize this directory as a gempost project because this file already exists: {path}")]
     ExampleFileAlreadyExists { path: PathBuf },
 
+    #[error("There is already a post with this slug: {slug}")]
+    PostAlreadyExists { slug: String },
+
     #[error("There was an issue generating the index page.\n\n{reason}")]
     InvalidIndexPageTemplate { reason: String },
 

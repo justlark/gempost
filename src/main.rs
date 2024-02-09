@@ -5,6 +5,7 @@ mod entry;
 mod error;
 mod feed;
 mod init;
+mod new;
 mod template;
 
 use std::path::Path;
@@ -12,6 +13,7 @@ use std::process::ExitCode;
 
 use clap::Parser;
 use eyre::WrapErr;
+use new::create_new_post;
 
 use crate::build::build_capsule;
 use crate::cli::Cli;
@@ -34,6 +36,13 @@ fn run() -> eyre::Result<()> {
                 Config::read(&build.config).wrap_err("failed reading the gempost config file")?;
 
             build_capsule(&config).wrap_err("failed building the capsule")?;
+        }
+        cli::Commands::New(new) => {
+            let config =
+                Config::read(&new.config).wrap_err("failed reading the gempost config file")?;
+
+            create_new_post(&config.posts_dir, &new.slug)
+                .wrap_err("failed creating new gemlog post")?;
         }
     }
 
