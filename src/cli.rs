@@ -29,6 +29,10 @@ pub struct New {
     /// The URL slug of the post to create
     pub slug: String,
 
+    /// The title of the post
+    #[arg(short, long)]
+    pub title: Option<String>,
+
     /// The path of the gempost config file
     #[arg(short, long, value_name = "PATH", default_value = "./gempost.yaml")]
     pub config: PathBuf,

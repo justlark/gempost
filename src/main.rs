@@ -41,7 +41,7 @@ fn run() -> eyre::Result<()> {
             let config =
                 Config::read(&new.config).wrap_err("failed reading the gempost config file")?;
 
-            create_new_post(&config.posts_dir, &new.slug)
+            create_new_post(&config.posts_dir, &new.slug, new.title.as_deref())
                 .wrap_err("failed creating new gemlog post")?;
         }
     }

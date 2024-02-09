@@ -1,4 +1,4 @@
 id: "{{ id }}"
-title: ""
+title: "{{ title }}"
 published: "{{ timestamp }}"
 updated: "{{ timestamp }}"
