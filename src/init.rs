@@ -2,7 +2,10 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::Path;
 
+use chrono::{Local, SecondsFormat};
 use eyre::{bail, WrapErr};
+use tera::{Context, Tera};
+use uuid::Uuid;
 
 use crate::error::Error;
 
@@ -42,10 +45,10 @@ const GEMLOG_POST_FILE: &str = include_str!(r"examples\post.gmi");
 const GEMLOG_POST_FILE: &str = include_str!(r"examples/post.gmi");
 
 #[cfg(windows)]
-const POST_METADATA_FILE: &str = include_str!(r"examples\metadata.yaml");
+const POST_METADATA_FILE: &str = include_str!(r"examples\metadata.yaml.tera");
 
 #[cfg(not(windows))]
-const POST_METADATA_FILE: &str = include_str!(r"examples/metadata.yaml");
+const POST_METADATA_FILE: &str = include_str!(r"examples/metadata.yaml.tera");
 
 fn put_file(file: &Path, contents: &str) -> eyre::Result<()> {
     match file.parent() {
@@ -74,6 +77,23 @@ fn put_file(file: &Path, contents: &str) -> eyre::Result<()> {
     Ok(())
 }
 
+fn generate_example_metadata_file(template: &str) -> eyre::Result<String> {
+    let mut tera = Tera::default();
+
+    tera.add_raw_template("metadata", template)
+        .wrap_err("Example metadata file template is invalid. This is a bug.")?;
+
+    let mut context = Context::new();
+    context.insert("id", &format!("urn:uuid:{}", Uuid::new_v4()));
+    context.insert(
+        "timestamp",
+        &Local::now().to_rfc3339_opts(SecondsFormat::Secs, false),
+    );
+
+    tera.render("metadata", &context)
+        .wrap_err("Failed to render example metadata file template. This is a bug.")
+}
+
 pub fn init_project(dir: &Path) -> eyre::Result<()> {
     put_file(&dir.join("gempost.yaml"), CONFIG_FILE)?;
     put_file(&dir.join("static").join("index.gmi"), CAPSULE_INDEX_FILE)?;
@@ -85,7 +105,7 @@ pub fn init_project(dir: &Path) -> eyre::Result<()> {
     put_file(&dir.join("posts").join("hello-world.gmi"), GEMLOG_POST_FILE)?;
     put_file(
         &dir.join("posts").join("hello-world.yaml"),
-        POST_METADATA_FILE,
+        &generate_example_metadata_file(POST_METADATA_FILE)?,
     )?;
 
     Ok(())
