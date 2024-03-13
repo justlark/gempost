@@ -54,4 +54,9 @@ pub enum Commands {
     ///
     /// This generates an empty gemtext file and YAML metadata file, automatically assigning a post ID.
     New(New),
+
+    /// Create a new page
+    ///
+    /// This generates an empty gemtext file and YAML metadata file, automatically assigning a page ID.
+    NewPage(New)
 }

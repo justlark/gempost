@@ -39,16 +39,34 @@ const POST_TEMPLATE_FILE: &str = include_str!(r"examples\post.tera");
 const POST_TEMPLATE_FILE: &str = include_str!(r"examples/post.tera");
 
 #[cfg(windows)]
+const PAGE_TEMPLATE_FILE: &str = include_str!(r"examples\page.tera");
+
+#[cfg(not(windows))]
+const PAGE_TEMPLATE_FILE: &str = include_str!(r"examples/page.tera");
+
+#[cfg(windows)]
 const GEMLOG_POST_FILE: &str = include_str!(r"examples\post.gmi");
 
 #[cfg(not(windows))]
 const GEMLOG_POST_FILE: &str = include_str!(r"examples/post.gmi");
 
 #[cfg(windows)]
-const POST_METADATA_FILE: &str = include_str!(r"examples\metadata.yaml.tera");
+const TEMPLATED_PAGE_FILE: &str = include_str!(r"examples\page.gmi");
 
 #[cfg(not(windows))]
-const POST_METADATA_FILE: &str = include_str!(r"examples/metadata.yaml.tera");
+const TEMPLATED_PAGE_FILE: &str = include_str!(r"examples/page.gmi");
+
+#[cfg(windows)]
+const POST_METADATA_FILE: &str = include_str!(r"examples\post-metadata.yaml.tera");
+
+#[cfg(not(windows))]
+const POST_METADATA_FILE: &str = include_str!(r"examples/post-metadata.yaml.tera");
+
+#[cfg(windows)]
+const PAGE_METADATA_FILE: &str = include_str!(r"examples\page-metadata.yaml.tera");
+
+#[cfg(not(windows))]
+const PAGE_METADATA_FILE: &str = include_str!(r"examples/page-metadata.yaml.tera");
 
 fn put_file(file: &Path, contents: &str) -> eyre::Result<()> {
     match file.parent() {
@@ -101,11 +119,20 @@ pub fn init_project(dir: &Path) -> eyre::Result<()> {
         &dir.join("templates").join("index.tera"),
         INDEX_TEMPLATE_FILE,
     )?;
+
     put_file(&dir.join("templates").join("post.tera"), POST_TEMPLATE_FILE)?;
+    put_file(&dir.join("templates").join("page.tera"), PAGE_TEMPLATE_FILE)?;
+
     put_file(&dir.join("posts").join("hello-world.gmi"), GEMLOG_POST_FILE)?;
     put_file(
         &dir.join("posts").join("hello-world.yaml"),
         &generate_example_metadata_file(POST_METADATA_FILE)?,
+    )?;
+
+    put_file(&dir.join("pages").join("hello-page.gmi"), TEMPLATED_PAGE_FILE)?;
+    put_file(
+        &dir.join("pages").join("hello-page.yaml"),
+        &generate_example_metadata_file(PAGE_METADATA_FILE)?,
     )?;
 
     Ok(())

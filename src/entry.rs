@@ -6,12 +6,11 @@ use std::{fs::File, path::PathBuf};
 use chrono::{DateTime, FixedOffset};
 use eyre::{bail, eyre, WrapErr};
 use serde::Deserialize;
+use serde_yaml::{Mapping as YamlMapping, Value as YamlValue};
 use url::Url;
 
+use crate::entry_util::{check_mismatched_files, PathPair, METADATA_FILE_EXT, POST_FILE_EXT};
 use crate::error::Error;
-
-const POST_FILE_EXT: &str = "gmi";
-const METADATA_FILE_EXT: &str = "yaml";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 struct RawAuthorMetadata {
@@ -38,10 +37,22 @@ struct RawEntryMetadata {
 const EXAMPLE_RFC3339: &str = "2006-01-02T15:04:05Z07:00";
 
 impl RawEntryMetadata {
-    pub fn read(path: &Path) -> eyre::Result<Self> {
+    pub fn read_from_value(value: &YamlValue, path: &Path) -> eyre::Result<Self> {
+        let metadata: Self = match serde_yaml::from_value(value.clone()) {
+            Ok(config) => config,
+            Err(err) => bail!(Error::InvalidMetadataFile {
+                path: path.to_owned(),
+                reason: err.to_string(),
+            }),
+        };
+
+        Ok(metadata)
+    }
+
+    pub fn read_as_value(path: &Path) -> eyre::Result<serde_yaml::Value> {
         let metadata_file = File::open(path)?;
 
-        let metadata: Self = match serde_yaml::from_reader(metadata_file) {
+        let metadata: serde_yaml::Value = match serde_yaml::from_reader(metadata_file) {
             Ok(config) => config,
             Err(err) => bail!(Error::InvalidMetadataFile {
                 path: path.to_owned(),
@@ -82,11 +93,49 @@ pub struct EntryMetadata {
     pub lang: Option<String>,
     pub categories: Vec<String>,
     pub draft: bool,
+    pub extra_values: YamlMapping,
 }
 
 impl EntryMetadata {
+    // TODO this is ugly and unmaintainable; copy over via macro or
+    // something.
+    const FIELDS_TO_FILTER: &'static [&'static str] = &[
+        "id",
+        "title",
+        "updated",
+        "summary",
+        "published",
+        "author",
+        "rights",
+        "lang",
+        "categories",
+        "draft",
+        "extra_variables",
+    ];
+
+    fn filter_extra_variables(values: YamlValue) -> YamlMapping {
+        if let YamlValue::Mapping(mapping) = values {
+            mapping
+                .into_iter()
+                .filter(|(key, _)| match key {
+                    YamlValue::String(yaml_str) => {
+                        !Self::FIELDS_TO_FILTER.contains(&yaml_str.as_str())
+                    }
+                    _ => true,
+                })
+                .collect::<YamlMapping>()
+        } else {
+            YamlMapping::new()
+        }
+    }
+
     pub fn read(path: &Path) -> eyre::Result<Self> {
-        let raw = RawEntryMetadata::read(path).wrap_err(format!(
+        let raw_value = RawEntryMetadata::read_as_value(path).wrap_err(format!(
+            "failed reading metadata file: {}",
+            path.to_string_lossy()
+        ))?;
+
+        let raw = RawEntryMetadata::read_from_value(&raw_value, path).wrap_err(format!(
             "failed reading metadata file: {}",
             path.to_string_lossy()
         ))?;
@@ -94,6 +143,7 @@ impl EntryMetadata {
         Ok(Self {
             id: raw.id,
             title: raw.title,
+            extra_values: Self::filter_extra_variables(raw_value),
             updated: DateTime::parse_from_rfc3339(&raw.updated).map_err(|_| {
                 Error::InvalidMetadataFile {
                     path: path.to_owned(),
@@ -143,77 +193,16 @@ pub struct PostLocationParams<'a> {
     pub slug: &'a str,
 }
 
-// This returns `None` when either:
-// - There is no filename.
-// - The path is empty or the root path.
-fn change_file_ext(path: &Path, new_ext: &str) -> Option<PathBuf> {
-    let original_filename = path.file_stem()?;
-    let new_filename = format!("{}.{}", original_filename.to_string_lossy(), new_ext);
-    Some(path.parent()?.join(new_filename))
-}
-
-struct PostPathPair {
-    gemtext: PathBuf,
-    metadata: PathBuf,
-}
-
-// Remove paths from each set that do not have an accompanying path in the other set. Emit warnings
-// when this happens.
-fn check_mismatched_post_files(
-    post_paths: HashSet<PathBuf>,
-    metadata_paths: &HashSet<PathBuf>,
-    warn_handler: impl Fn(&str),
-) -> eyre::Result<Vec<PostPathPair>> {
-    // Warn about metadata files that don't have an accompanying gemtext file.
-    for metadata_path in metadata_paths.iter() {
-        let maybe_post_path = match change_file_ext(metadata_path, POST_FILE_EXT) {
-            Some(path) => path,
-            None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-        };
-
-        if !post_paths.contains(&maybe_post_path) {
-            warn_handler(&format!(
-                "This YAML metadata file does not have an accompanying gemtext file: {}",
-                metadata_path.to_string_lossy()
-            ));
-        }
-    }
-
-    let mut pairs = Vec::new();
-
-    // Filter out gemtext files that don't have an accompanying metadata file.
-    for post_path in post_paths.into_iter() {
-        let maybe_metadata_path = match change_file_ext(&post_path, METADATA_FILE_EXT) {
-            Some(path) => path,
-            None => bail!("This file has no filename, even though we've already checked for one. This is a bug."),
-        };
-
-        if metadata_paths.contains(&maybe_metadata_path) {
-            pairs.push(PostPathPair {
-                gemtext: post_path,
-                metadata: maybe_metadata_path,
-            });
-        } else {
-            warn_handler(&format!(
-                "This gemtext file does not have an accompanying YAML metadata file: {}",
-                post_path.to_string_lossy()
-            ));
-        }
-    }
-
-    Ok(pairs)
-}
-
 impl Entry {
     fn from_post_paths(
-        path_pairs: &Vec<PostPathPair>,
+        path_pairs: &Vec<PathPair>,
         locator: impl Fn(PostLocationParams) -> eyre::Result<PostLocation>,
     ) -> eyre::Result<Vec<Self>> {
         let mut entries = Vec::new();
 
         // By this point, we've already removed post paths from the set that do not have an
         // accompanying metadata file.
-        for PostPathPair {
+        for PathPair {
             gemtext: gemtext_path,
             metadata: metadata_path,
         } in path_pairs
@@ -294,7 +283,7 @@ impl Entry {
             };
         }
 
-        let path_pairs = check_mismatched_post_files(post_paths, &metadata_paths, warn_handler)
+        let path_pairs = check_mismatched_files(post_paths, &metadata_paths, warn_handler)
             .wrap_err("failed checking for mismatched post files")?;
 
         Self::from_post_paths(&path_pairs, locator)

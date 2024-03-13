@@ -74,3 +74,49 @@ pub fn create_new_post(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyr
 
     Ok(())
 }
+
+pub fn create_new_page(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyre::Result<()> {
+    let gemtext_path = posts_dir.join(format!("{slug}.gmi"));
+    let metadata_path = posts_dir.join(format!("{slug}.yaml"));
+
+    // Generate an empty gemtext file.
+
+    match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(gemtext_path)
+    {
+        Ok(file) => file,
+        Err(err) if err.kind() == io::ErrorKind::AlreadyExists => {
+            bail!(Error::PostAlreadyExists {
+                slug: slug.to_owned()
+            });
+        }
+        Err(err) => Err(err).wrap_err("failed creating new page gemtext file")?,
+    };
+
+    // Generate a metadata YAML file.
+
+    let mut metadata_file = match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(metadata_path)
+    {
+        Ok(file) => file,
+        Err(err) if err.kind() == io::ErrorKind::AlreadyExists => {
+            bail!(Error::PostAlreadyExists {
+                slug: slug.to_owned()
+            });
+        }
+        Err(err) => Err(err).wrap_err("failed creating new page metadata file")?,
+    };
+
+    let metadata_file_contents = generate_metadata_file(METADATA_TEMPLATE, title)
+        .wrap_err("failed generating contents for new page metadata file")?;
+
+    metadata_file
+        .write_all(metadata_file_contents.as_bytes())
+        .wrap_err("failed writing contents to new page metadata file")?;
+
+    Ok(())
+}

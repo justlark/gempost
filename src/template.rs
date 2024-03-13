@@ -9,6 +9,7 @@ use tera::{Context, Tera};
 use crate::entry::{AuthorMetadata, Entry};
 use crate::error::Error;
 use crate::feed::{Feed, FeedAuthor};
+use crate::page_entry::PageEntry;
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct EntryAuthorTemplateData {
@@ -40,6 +41,7 @@ pub struct EntryTemplateData {
     pub rights: Option<String>,
     pub lang: Option<String>,
     pub categories: Vec<String>,
+    pub extra_values: serde_yaml::Mapping,
 }
 
 impl From<Entry> for EntryTemplateData {
@@ -60,12 +62,36 @@ impl From<Entry> for EntryTemplateData {
             rights: params.metadata.rights,
             lang: params.metadata.lang,
             categories: params.metadata.categories,
+            extra_values: params.metadata.extra_values,
+        }
+    }
+}
+
+impl From<PageEntry> for EntryTemplateData {
+    fn from(params: PageEntry) -> Self {
+        Self {
+            id: params.metadata.id,
+            url: params.url.to_string(),
+            title: params.metadata.title,
+            body: params.body,
+            updated: params.metadata.updated.to_rfc3339(),
+            summary: params.metadata.summary,
+            published: params
+                .metadata
+                .published
+                .as_ref()
+                .map(DateTime::<FixedOffset>::to_rfc3339),
+            author: params.metadata.author.map(Into::into),
+            rights: params.metadata.rights,
+            lang: params.metadata.lang,
+            categories: params.metadata.categories,
+            extra_values: params.metadata.extra_values,
         }
     }
 }
 
 impl EntryTemplateData {
-    pub fn render(
+    pub fn render_post(
         &self,
         feed: &FeedTemplateData,
         template: &Path,
@@ -88,6 +114,42 @@ impl EntryTemplateData {
 
         if let Err(err) = tera.render_to("post", &context, dest_file) {
             bail!(Error::InvalidPostPageTemplate {
+                path: output.to_owned(),
+                reason: err.to_string(),
+            });
+        }
+
+        Ok(())
+    }
+
+    pub fn render_page(
+        &self,
+        template: &Path,
+        output: &Path,
+    ) -> eyre::Result<()> {
+        let mut tera = Tera::default();
+
+        if let Err(err) = tera.add_template_file(template, Some("page")) {
+            bail!(Error::InvalidPageTemplate {
+                path: output.to_owned(),
+                reason: err.to_string(),
+            });
+        }
+
+        let mut context = Context::new();
+        context.insert("entry", self);
+        context.insert("values", &self.extra_values);
+
+        let parent_dir = output.parent().ok_or(eyre!(
+            "Could not get parent directory of templated page file. This is a bug."
+        ))?;
+
+        fs::create_dir_all(parent_dir).wrap_err("failed creating parent directory")?;
+
+        let dest_file = File::create(output).wrap_err("failed creating gemlog templated page file")?;
+
+        if let Err(err) = tera.render_to("page", &context, dest_file) {
+            bail!(Error::InvalidPageTemplate {
                 path: output.to_owned(),
                 reason: err.to_string(),
             });

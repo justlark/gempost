@@ -9,10 +9,6 @@ static_dir: "./static/"
 # (required).
 posts_dir: "./posts/"
 
-# The directory for gemtext pages and their sidecar metadata files
-# (required).
-pages_dir: "./pages/"
-
 # The path of the Tera template used to generate the gemlog index page
 # (required).
 index_template_file: "./templates/index.tera"
@@ -20,10 +16,6 @@ index_template_file: "./templates/index.tera"
 # The path of the Tera template used to generate each gemlog post page
 # (required).
 post_template_file: "./templates/post.tera"
-
-# The path of the Tera template used to generate each gemlog templated
-# page (required).
-page_template_file: "./templates/page.tera"
 
 # A Tera template which specifies the URL path for posts (required).
 #

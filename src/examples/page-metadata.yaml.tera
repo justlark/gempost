@@ -1,0 +1,18 @@
+#
+# This is an example of a YAML sidecar metadata file.
+#
+
+# A universally unique URI that will never change. We recommend using a UUID.
+id: "{{ id }}"
+
+# The title of your page.
+title: "Hello World"
+
+# When your page was originally published.
+published: "{{ timestamp }}"
+
+# When your page was last updated.
+updated: "{{ timestamp }}"
+
+# Custom values are supported too.
+name: "MyName"
