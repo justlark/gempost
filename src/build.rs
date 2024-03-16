@@ -7,6 +7,7 @@ use eyre::{bail, WrapErr};
 use crate::config::Config;
 use crate::feed::Feed;
 use crate::page::Pages;
+use crate::template::PagesTemplateData;
 use crate::template::{EntryTemplateData, FeedTemplateData};
 
 const FEED_TEMPLATE: &str = include_str!("atom.xml.tera");
@@ -74,6 +75,7 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     let feed_data = FeedTemplateData::from(feed.clone());
 
     let pages = Pages::from_config(config, warn_handler).wrap_err("failed parsing config file")?;
+    let pages_data = PagesTemplateData::from(pages.clone());
 
     // Delete the public dir. We do this because static files might have been removed since the
     // last build, and posts might have been removed or converted to drafts. It's easier to just
@@ -120,7 +122,7 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
         let page_path = config.public_dir.join(&page.path);
 
         EntryTemplateData::from(page)
-            .render_page(&config.page_template_file, &page_path)
+            .render_page(&pages_data, &config.page_template_file, &page_path)
             .wrap_err(format!(
                 "failed rendering post: {}",
                 page_path.to_string_lossy()

@@ -32,6 +32,7 @@ pub struct Pages {
     pub updated: DateTime<FixedOffset>,
     pub rights: Option<String>,
     pub author: Option<FeedAuthor>,
+    pub pages_path: PathBuf,
     pub pages: Vec<PageEntry>,
 }
 
@@ -85,6 +86,7 @@ impl Pages {
         Ok(Pages {
             capsule_url: config.url.clone(),
             index_url,
+            pages_path: config.pages_dir.clone(),
             pages: entries,
             updated: last_updated,
             rights: config.rights.clone(),

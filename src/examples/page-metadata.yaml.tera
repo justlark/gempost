@@ -14,5 +14,6 @@ published: "{{ timestamp }}"
 # When your page was last updated.
 updated: "{{ timestamp }}"
 
-# Custom values are supported too.
-name: "MyName"
+# Custom values are supported too, under the values key.
+values:
+  name: "MyName"

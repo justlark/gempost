@@ -1,5 +1,5 @@
 use std::fs::{self, File};
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 use chrono::{DateTime, Datelike, FixedOffset};
 use eyre::{bail, eyre, WrapErr};
@@ -9,6 +9,7 @@ use tera::{Context, Tera};
 use crate::entry::{AuthorMetadata, Entry};
 use crate::error::Error;
 use crate::feed::{Feed, FeedAuthor};
+use crate::page::Pages;
 use crate::page_entry::PageEntry;
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
@@ -41,7 +42,7 @@ pub struct EntryTemplateData {
     pub rights: Option<String>,
     pub lang: Option<String>,
     pub categories: Vec<String>,
-    pub extra_values: serde_yaml::Mapping,
+    pub values: serde_yaml::Mapping,
 }
 
 impl From<Entry> for EntryTemplateData {
@@ -62,7 +63,7 @@ impl From<Entry> for EntryTemplateData {
             rights: params.metadata.rights,
             lang: params.metadata.lang,
             categories: params.metadata.categories,
-            extra_values: params.metadata.extra_values,
+            values: params.metadata.values,
         }
     }
 }
@@ -85,7 +86,7 @@ impl From<PageEntry> for EntryTemplateData {
             rights: params.metadata.rights,
             lang: params.metadata.lang,
             categories: params.metadata.categories,
-            extra_values: params.metadata.extra_values,
+            values: params.metadata.values,
         }
     }
 }
@@ -122,8 +123,38 @@ impl EntryTemplateData {
         Ok(())
     }
 
+    fn create_breadcrumb(file_path: &Path, base_path: &Path) -> Vec<String> {
+        // Strip the first N components, which will give us the
+        // breadcrumb within the context of the capsule itself,
+        // instead of a full absolute path on local filesystem.
+        let base_path = base_path.canonicalize().ok().unwrap_or_default();
+        let num_base_components = base_path.components().count();
+
+        let binding = file_path.canonicalize().ok().unwrap_or_default();
+        let capsule_components = binding.components().skip(num_base_components);
+
+        let mut breadcrumb: Vec<String> = capsule_components
+            .flat_map(|c| match c {
+                Component::Normal(breadcrumb) => Some(breadcrumb),
+                _ => None,
+            })
+            .map(|comp_str| comp_str.to_string_lossy().to_string())
+            .collect();
+
+        // Remove the file extension from the last element in the
+        // breadcrumb.
+        if let Some(filename) = breadcrumb.last_mut() {
+            if let Some(stem) = Path::new(filename).file_stem() {
+                *filename = stem.to_string_lossy().to_string();
+            }
+        }
+
+        breadcrumb
+    }
+
     pub fn render_page(
         &self,
+        pages: &PagesTemplateData,
         template: &Path,
         output: &Path,
     ) -> eyre::Result<()> {
@@ -136,17 +167,23 @@ impl EntryTemplateData {
             });
         }
 
-        let mut context = Context::new();
-        context.insert("entry", self);
-        context.insert("values", &self.extra_values);
-
+        // creation of the file must be first to make sure
+        // canonicalize() works to create breadcrumb.
         let parent_dir = output.parent().ok_or(eyre!(
             "Could not get parent directory of templated page file. This is a bug."
         ))?;
 
         fs::create_dir_all(parent_dir).wrap_err("failed creating parent directory")?;
 
-        let dest_file = File::create(output).wrap_err("failed creating gemlog templated page file")?;
+        let dest_file =
+            File::create(output).wrap_err("failed creating gemlog templated page file")?;
+
+        let breadcrumb = Self::create_breadcrumb(output, &pages.pages_dir);
+
+        let mut context = Context::new();
+        context.insert("entry", self);
+        context.insert("values", &self.values);
+        context.insert("breadcrumb", &breadcrumb);
 
         if let Err(err) = tera.render_to("page", &context, dest_file) {
             bail!(Error::InvalidPageTemplate {
@@ -317,6 +354,22 @@ impl From<Feed> for FeedTemplateData {
             rights: feed.rights,
             author: feed.author.map(Into::into),
             entries: feed.entries.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+pub struct PagesTemplateData {
+    pub capsule_url: String,
+    pub index_url: String,
+    pub pages_dir: PathBuf,
+}
+
+impl From<Pages> for PagesTemplateData {
+    fn from(pages: Pages) -> Self {
+        Self {
+            capsule_url: pages.capsule_url.to_string(),
+            index_url: pages.index_url.to_string(),
+            pages_dir: pages.pages_path,
         }
     }
 }

@@ -31,6 +31,7 @@ struct RawEntryMetadata {
     lang: Option<String>,
     categories: Option<Vec<String>>,
     draft: Option<bool>,
+    values: Option<YamlMapping>,
 }
 
 // This example comes from the Go standard library.
@@ -93,42 +94,10 @@ pub struct EntryMetadata {
     pub lang: Option<String>,
     pub categories: Vec<String>,
     pub draft: bool,
-    pub extra_values: YamlMapping,
+    pub values: YamlMapping,
 }
 
 impl EntryMetadata {
-    // TODO this is ugly and unmaintainable; copy over via macro or
-    // something.
-    const FIELDS_TO_FILTER: &'static [&'static str] = &[
-        "id",
-        "title",
-        "updated",
-        "summary",
-        "published",
-        "author",
-        "rights",
-        "lang",
-        "categories",
-        "draft",
-        "extra_variables",
-    ];
-
-    fn filter_extra_variables(values: YamlValue) -> YamlMapping {
-        if let YamlValue::Mapping(mapping) = values {
-            mapping
-                .into_iter()
-                .filter(|(key, _)| match key {
-                    YamlValue::String(yaml_str) => {
-                        !Self::FIELDS_TO_FILTER.contains(&yaml_str.as_str())
-                    }
-                    _ => true,
-                })
-                .collect::<YamlMapping>()
-        } else {
-            YamlMapping::new()
-        }
-    }
-
     pub fn read(path: &Path) -> eyre::Result<Self> {
         let raw_value = RawEntryMetadata::read_as_value(path).wrap_err(format!(
             "failed reading metadata file: {}",
@@ -143,7 +112,7 @@ impl EntryMetadata {
         Ok(Self {
             id: raw.id,
             title: raw.title,
-            extra_values: Self::filter_extra_variables(raw_value),
+            values: raw.values.unwrap_or(YamlMapping::new()),
             updated: DateTime::parse_from_rfc3339(&raw.updated).map_err(|_| {
                 Error::InvalidMetadataFile {
                     path: path.to_owned(),
