@@ -12,6 +12,35 @@ use crate::feed::{Feed, FeedAuthor};
 use crate::page::Pages;
 use crate::page_entry::PageEntry;
 
+fn create_breadcrumb(file_path: &Path, base_path: &Path) -> Vec<String> {
+    // Strip the first N components, which will give us the
+    // breadcrumb within the context of the capsule itself,
+    // instead of a full absolute path on local filesystem.
+    let base_path = base_path.canonicalize().ok().unwrap_or_default();
+    let num_base_components = base_path.components().count();
+
+    let binding = file_path.canonicalize().ok().unwrap_or_default();
+    let capsule_components = binding.components().skip(num_base_components);
+
+    let mut breadcrumb: Vec<String> = capsule_components
+        .flat_map(|c| match c {
+            Component::Normal(breadcrumb) => Some(breadcrumb),
+            _ => None,
+        })
+        .map(|comp_str| comp_str.to_string_lossy().into())
+        .collect();
+
+    // Remove the file extension from the last element in the
+    // breadcrumb.
+    if let Some(filename) = breadcrumb.last_mut() {
+        if let Some(stem) = Path::new(filename).file_stem() {
+            *filename = stem.to_string_lossy().into();
+        }
+    }
+
+    breadcrumb
+}
+
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct EntryAuthorTemplateData {
     pub name: String,
@@ -123,35 +152,6 @@ impl EntryTemplateData {
         Ok(())
     }
 
-    fn create_breadcrumb(file_path: &Path, base_path: &Path) -> Vec<String> {
-        // Strip the first N components, which will give us the
-        // breadcrumb within the context of the capsule itself,
-        // instead of a full absolute path on local filesystem.
-        let base_path = base_path.canonicalize().ok().unwrap_or_default();
-        let num_base_components = base_path.components().count();
-
-        let binding = file_path.canonicalize().ok().unwrap_or_default();
-        let capsule_components = binding.components().skip(num_base_components);
-
-        let mut breadcrumb: Vec<String> = capsule_components
-            .flat_map(|c| match c {
-                Component::Normal(breadcrumb) => Some(breadcrumb),
-                _ => None,
-            })
-            .map(|comp_str| comp_str.to_string_lossy().to_string())
-            .collect();
-
-        // Remove the file extension from the last element in the
-        // breadcrumb.
-        if let Some(filename) = breadcrumb.last_mut() {
-            if let Some(stem) = Path::new(filename).file_stem() {
-                *filename = stem.to_string_lossy().to_string();
-            }
-        }
-
-        breadcrumb
-    }
-
     pub fn render_page(
         &self,
         pages: &PagesTemplateData,
@@ -178,7 +178,7 @@ impl EntryTemplateData {
         let dest_file =
             File::create(output).wrap_err("failed creating gemlog templated page file")?;
 
-        let breadcrumb = Self::create_breadcrumb(output, &pages.pages_dir);
+        let breadcrumb = create_breadcrumb(output, &pages.pages_dir);
 
         let mut context = Context::new();
         context.insert("entry", self);
@@ -300,6 +300,57 @@ impl PostPathTemplateData {
         context.insert("year", &self.year);
         context.insert("month", &self.month);
         context.insert("day", &self.day);
+        context.insert("slug", &self.slug);
+
+        match tera.render("path", &context) {
+            Ok(path) => Ok(path),
+            Err(err) => bail!(Error::InvalidPostPath {
+                template: template.to_owned(),
+                reason: err.to_string(),
+            }),
+        }
+    }
+}
+
+pub struct PagePathParams<'a> {
+    pub base_path: &'a Path,
+    pub file_path: &'a Path,
+    pub slug: &'a str,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PagePathTemplateData {
+    pub parent_url: String,
+    pub slug: String,
+}
+
+impl<'a> From<PagePathParams<'a>> for PagePathTemplateData {
+    fn from(params: PagePathParams) -> Self {
+        // Breadcrumb needs to drop the last entry, as it's the page
+        // name in this case.
+        let mut breadcrumb = create_breadcrumb(params.file_path, params.base_path);
+        breadcrumb.pop();
+
+        Self {
+            parent_url: breadcrumb.join("/"),
+            slug: params.slug.to_string(),
+        }
+    }
+}
+
+impl PagePathTemplateData {
+    pub fn render(&self, template: &str) -> eyre::Result<String> {
+        let mut tera = Tera::default();
+
+        if let Err(err) = tera.add_raw_template("path", template) {
+            bail!(Error::InvalidPostPath {
+                template: template.to_owned(),
+                reason: err.to_string(),
+            });
+        }
+
+        let mut context = Context::new();
+        context.insert("breadcrumb", &self.parent_url);
         context.insert("slug", &self.slug);
 
         match tera.render("path", &context) {

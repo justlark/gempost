@@ -6,7 +6,7 @@ use url::Url;
 
 use crate::config::{AuthorConfig, Config};
 use crate::page_entry::{PageEntry, PageLocation, PageLocationParams};
-use crate::template::{PostPathParams, PostPathTemplateData};
+use crate::template::{PagePathParams, PagePathTemplateData};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FeedAuthor {
@@ -41,9 +41,10 @@ impl Pages {
         let locator = |params: PageLocationParams| -> eyre::Result<PageLocation> {
             let mut page_url = config.url.clone();
 
-            let path_params = PostPathTemplateData::from(PostPathParams {
-                slug: params.slug.to_owned(),
-                published: params.metadata.published,
+            let path_params = PagePathTemplateData::from(PagePathParams {
+                base_path: &config.pages_dir,
+                file_path: &params.file_path,
+                slug: params.slug,
             });
 
             let page_path = path_params.render(&config.page_path)?;
@@ -53,18 +54,18 @@ impl Pages {
                 Err(()) => bail!("capsule URL cannot be a base URL"),
             };
 
-            let mut post_filepath = PathBuf::new();
+            let mut page_filepath = PathBuf::new();
 
             for segment in page_path.split('/') {
                 url_segments.push(segment);
-                post_filepath.push(segment);
+                page_filepath.push(segment);
             }
 
             drop(url_segments);
 
             Ok(PageLocation {
                 url: page_url,
-                path: post_filepath,
+                path: page_filepath,
             })
         };
 

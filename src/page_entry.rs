@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use eyre::{eyre, WrapErr};
 use url::Url;
+use walkdir::WalkDir;
 
 use crate::entry::EntryMetadata;
 use crate::entry_util::{check_mismatched_files, PathPair, METADATA_FILE_EXT, POST_FILE_EXT};
@@ -19,12 +20,15 @@ pub struct PageEntry {
     pub path: PathBuf,
 }
 
+#[derive(Debug)]
 pub struct PageLocation {
     pub url: Url,
     pub path: PathBuf,
 }
 
+#[derive(Debug)]
 pub struct PageLocationParams<'a> {
+    pub file_path: &'a Path,
     pub metadata: &'a EntryMetadata,
     pub slug: &'a str,
 }
@@ -63,7 +67,8 @@ impl PageEntry {
                 ))?
                 .to_string_lossy();
 
-            let post_location = locator(PageLocationParams {
+            let page_location = locator(PageLocationParams {
+                file_path: &gemtext_path,
                 metadata: &standard_metadata,
                 slug: &post_slug,
             })?;
@@ -72,8 +77,8 @@ impl PageEntry {
                 metadata: standard_metadata,
                 variables: HashMap::new(),
                 body: page_body,
-                url: post_location.url,
-                path: post_location.path,
+                url: page_location.url,
+                path: page_location.path,
             });
         }
 
@@ -85,7 +90,7 @@ impl PageEntry {
         locator: impl Fn(PageLocationParams) -> eyre::Result<PageLocation>,
         warn_handler: impl Fn(&str),
     ) -> eyre::Result<Vec<Self>> {
-        let file_entries = fs::read_dir(pages_dir).wrap_err("failed reading pages directory")?;
+        let file_entries = WalkDir::new(pages_dir);
 
         let mut post_paths = HashSet::new();
         let mut metadata_paths = HashSet::new();
@@ -98,9 +103,13 @@ impl PageEntry {
         };
 
         for entry_result in file_entries {
-            let entry_path = entry_result
-                .wrap_err("failed reading pages directory")?
-                .path();
+            let entry_result = entry_result.wrap_err("failed reading pages directory")?;
+
+            if !entry_result.file_type().is_file() {
+                continue;
+            }
+
+            let entry_path = entry_result.into_path();
 
             let path_ext = match entry_path.extension() {
                 Some(extension) => extension,

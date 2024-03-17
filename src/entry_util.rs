@@ -5,6 +5,7 @@ use eyre::bail;
 pub(crate) const POST_FILE_EXT: &str = "gmi";
 pub(crate) const METADATA_FILE_EXT: &str = "yaml";
 
+#[derive(Debug)]
 pub struct PathPair {
     pub gemtext: PathBuf,
     pub metadata: PathBuf,
