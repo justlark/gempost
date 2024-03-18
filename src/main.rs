@@ -47,12 +47,17 @@ fn run() -> eyre::Result<()> {
             create_new_post(&config.posts_dir, &new.slug, new.title.as_deref())
                 .wrap_err("failed creating new gemlog post")?;
         }
-        cli::Commands::NewPage(new) => {
-            let config =
-                Config::read(&new.config).wrap_err("failed reading the gempost config file")?;
+        cli::Commands::NewPage(new_page) => {
+            let config = Config::read(&new_page.config)
+                .wrap_err("failed reading the gempost config file")?;
 
-            create_new_page(&config.pages_dir, &new.slug, new.title.as_deref())
-                .wrap_err("failed creating new gemlog post")?;
+            create_new_page(
+                &config.pages_dir,
+                &new_page.slug,
+                new_page.title.as_deref(),
+                new_page.subpath.as_deref(),
+            )
+            .wrap_err("failed creating new gemlog post")?;
         }
     }
 

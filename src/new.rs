@@ -1,4 +1,4 @@
-use std::fs::OpenOptions;
+use std::fs::{create_dir_all, OpenOptions};
 use std::io::{self, Write};
 use std::path::Path;
 
@@ -75,9 +75,22 @@ pub fn create_new_post(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyr
     Ok(())
 }
 
-pub fn create_new_page(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyre::Result<()> {
-    let gemtext_path = posts_dir.join(format!("{slug}.gmi"));
-    let metadata_path = posts_dir.join(format!("{slug}.yaml"));
+pub fn create_new_page(
+    pages_dir: &Path,
+    slug: &str,
+    title: Option<&str>,
+    subpath: Option<&Path>,
+) -> eyre::Result<()> {
+    // By default, files are created at the root. But they may be
+    // created at an optional subpath under the root.
+    let pages_dir = subpath
+        .map(|sp| pages_dir.join(sp))
+        .unwrap_or_else(|| pages_dir.to_path_buf());
+
+    create_dir_all(&pages_dir).wrap_err("failed to create the requested page directory")?;
+
+    let gemtext_path = pages_dir.join(format!("{slug}.gmi"));
+    let metadata_path = pages_dir.join(format!("{slug}.yaml"));
 
     // Generate an empty gemtext file.
 
