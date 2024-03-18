@@ -6,7 +6,7 @@ use std::{fs::File, path::PathBuf};
 use chrono::{DateTime, FixedOffset};
 use eyre::{bail, eyre, WrapErr};
 use serde::Deserialize;
-use serde_yaml::{Mapping as YamlMapping, Value as YamlValue};
+use serde_yaml::Mapping as YamlMapping;
 use url::Url;
 
 use crate::entry_util::{check_mismatched_files, PathPair, METADATA_FILE_EXT, POST_FILE_EXT};
@@ -38,22 +38,10 @@ struct RawEntryMetadata {
 const EXAMPLE_RFC3339: &str = "2006-01-02T15:04:05Z07:00";
 
 impl RawEntryMetadata {
-    pub fn read_from_value(value: &YamlValue, path: &Path) -> eyre::Result<Self> {
-        let metadata: Self = match serde_yaml::from_value(value.clone()) {
-            Ok(config) => config,
-            Err(err) => bail!(Error::InvalidMetadataFile {
-                path: path.to_owned(),
-                reason: err.to_string(),
-            }),
-        };
-
-        Ok(metadata)
-    }
-
-    pub fn read_as_value(path: &Path) -> eyre::Result<serde_yaml::Value> {
+    pub fn read(path: &Path) -> eyre::Result<Self> {
         let metadata_file = File::open(path)?;
 
-        let metadata: serde_yaml::Value = match serde_yaml::from_reader(metadata_file) {
+        let metadata: Self = match serde_yaml::from_reader(metadata_file) {
             Ok(config) => config,
             Err(err) => bail!(Error::InvalidMetadataFile {
                 path: path.to_owned(),
@@ -99,12 +87,7 @@ pub struct EntryMetadata {
 
 impl EntryMetadata {
     pub fn read(path: &Path) -> eyre::Result<Self> {
-        let raw_value = RawEntryMetadata::read_as_value(path).wrap_err(format!(
-            "failed reading metadata file: {}",
-            path.to_string_lossy()
-        ))?;
-
-        let raw = RawEntryMetadata::read_from_value(&raw_value, path).wrap_err(format!(
+        let raw = RawEntryMetadata::read(path).wrap_err(format!(
             "failed reading metadata file: {}",
             path.to_string_lossy()
         ))?;
