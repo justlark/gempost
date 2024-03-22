@@ -82,7 +82,7 @@ mod defaults {
     }
 
     pub fn page_path() -> String {
-        String::from("/pages/{{ breadcrumb }}/{{ slug }}.gmi")
+        String::from("/{{ breadcrumb }}/{{ slug }}.gmi")
     }
 
     pub fn index_path() -> String {
