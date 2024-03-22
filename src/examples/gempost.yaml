@@ -54,12 +54,6 @@ index_path: "/posts/index.gmi"
 # The URL path to serve your capsule's Atom feed at (required).
 feed_path: "/posts/atom.xml"
 
-# The directory for templated pages.
-# This template has access to the following variables:
-# - `slug`: The name of the gemtext source file, sans file extension
-# The template also can embed any given custom variables.
-pages_path: "/pages/{{ slug }}.gmi"
-
 # The title of your gemlog (required).
 #title: "My Gemlog"
 
