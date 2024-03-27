@@ -130,7 +130,9 @@ impl FeedTemplateData {
     pub fn render_feed(&self, template: &str, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
-        tera.add_raw_template("feed", template)
+        // The template name needs the `.xml` extension to signal to Tera that all input should be
+        // XML-escaped.
+        tera.add_raw_template("feed.xml", template)
             .wrap_err("The bundled Atom feed template is invalid. This is a bug.")?;
 
         let mut context = Context::new();
@@ -144,7 +146,7 @@ impl FeedTemplateData {
 
         let dest_file = File::create(output).wrap_err("failed creating gemlog Atom feed file")?;
 
-        tera.render_to("feed", &context, dest_file)
+        tera.render_to("feed.xml", &context, dest_file)
             .wrap_err("failed generating the Atom feed")?;
 
         Ok(())
