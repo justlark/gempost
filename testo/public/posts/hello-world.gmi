@@ -1,0 +1,6 @@
+# Hello World
+
+Hello, world!
+
+This is an example gemlog post.
+

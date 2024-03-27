@@ -1,0 +1,5 @@
+# My Gemlog
+
+=> gemini://example.com/posts/hello-world.gmi 2024-03-17 - Hello World
+
+=> gemini://example.com/posts/atom.xml Atom feed

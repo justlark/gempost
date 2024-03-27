@@ -1,0 +1,8 @@
+{#
+  This is an example of a Tera template for each individual post.
+
+  This is a minimal example that just adds a header with the title from the
+  sidecar YAML metadata file.
+#}# {{ entry.title }}
+
+{{ entry.body }}

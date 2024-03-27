@@ -21,7 +21,7 @@
   {%- for entry in feed.entries %}
   <entry>
     <id>{{ entry.id }}</id>
-    <title>{{ entry.title }}</title>
+    <title>{{ entry.title | escape_xml }}</title>
     {% if entry.summary -%}
     <summary>{{ entry.summary }}</summary>
     {% endif -%}

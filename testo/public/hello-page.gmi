@@ -1,0 +1,8 @@
+# Hello World
+
+very legal very cool
+
+Hello, world!
+
+This is an example templated page.
+

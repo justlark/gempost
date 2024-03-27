@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>gemini://example.com</id>
+  <title>My Gemlog</title>
+  <updated>2024-03-17T20:52:01+01:00</updated>
+  <link rel="self" type="application/atom+xml" href="gemini://example.com/posts/atom.xml" />
+  <link rel="alternate" href="gemini://example.com/posts/index.gmi" />
+  <entry>
+    <id>urn:uuid:0ffe2198-baa3-491e-8a38-32f64990badd</id>
+    <title>Hello World</title>
+    <published>2024-03-17T20:52:01+01:00</published>
+    <updated>2024-03-17T20:52:01+01:00</updated>
+    <link rel="alternate" href="gemini://example.com/posts/hello-world.gmi" />
+    
+  </entry>
+</feed>
