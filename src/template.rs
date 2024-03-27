@@ -130,6 +130,8 @@ impl FeedTemplateData {
     pub fn render_feed(&self, template: &str, output: &Path) -> eyre::Result<()> {
         let mut tera = Tera::default();
 
+        // The template name needs the `.xml` extension to signal to Tera that all input should be
+        // XML-escaped.
         tera.add_raw_template("feed.xml", template)
             .wrap_err("The bundled Atom feed template is invalid. This is a bug.")?;
 
