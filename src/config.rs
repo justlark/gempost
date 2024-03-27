@@ -23,12 +23,18 @@ struct RawConfig {
     static_dir: PathBuf,
     #[serde(default = "defaults::posts_dir")]
     posts_dir: PathBuf,
+    #[serde(default = "defaults::pages_dir")]
+    pages_dir: PathBuf,
     #[serde(default = "defaults::index_template_file")]
     index_template_file: PathBuf,
     #[serde(default = "defaults::post_template_file")]
     post_template_file: PathBuf,
+    #[serde(default = "defaults::page_template_file")]
+    page_template_file: PathBuf,
     #[serde(default = "defaults::post_path")]
     post_path: String,
+    #[serde(default = "defaults::page_path")]
+    page_path: String,
     #[serde(default = "defaults::index_path")]
     index_path: String,
     #[serde(default = "defaults::feed_path")]
@@ -55,6 +61,10 @@ mod defaults {
         PathBuf::from("./posts/")
     }
 
+    pub fn pages_dir() -> PathBuf {
+        PathBuf::from("./pages/")
+    }
+
     pub fn index_template_file() -> PathBuf {
         PathBuf::from("./templates/index.tera")
     }
@@ -63,8 +73,16 @@ mod defaults {
         PathBuf::from("./templates/post.tera")
     }
 
+    pub fn page_template_file() -> PathBuf {
+        PathBuf::from("./templates/page.tera")
+    }
+
     pub fn post_path() -> String {
         String::from("/posts/{{ slug }}.gmi")
+    }
+
+    pub fn page_path() -> String {
+        String::from("/{{ breadcrumb }}/{{ slug }}.gmi")
     }
 
     pub fn index_path() -> String {
@@ -120,9 +138,12 @@ pub struct Config {
     pub public_dir: PathBuf,
     pub static_dir: PathBuf,
     pub posts_dir: PathBuf,
+    pub pages_dir: PathBuf,
     pub index_template_file: PathBuf,
     pub post_template_file: PathBuf,
+    pub page_template_file: PathBuf,
     pub post_path: String,
+    pub page_path: String,
     pub index_path: String,
     pub feed_path: String,
     pub title: String,
@@ -140,9 +161,12 @@ impl Config {
             public_dir: raw.public_dir,
             static_dir: raw.static_dir,
             posts_dir: raw.posts_dir,
+            pages_dir: raw.pages_dir,
             index_template_file: raw.index_template_file,
             post_template_file: raw.post_template_file,
+            page_template_file: raw.page_template_file,
             post_path: raw.post_path,
+            page_path: raw.page_path,
             index_path: raw.index_path,
             feed_path: raw.feed_path,
             title: raw.title,

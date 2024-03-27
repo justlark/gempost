@@ -29,6 +29,9 @@ pub enum Error {
     #[error("There was an issue generating a post page.\n\n{reason}")]
     InvalidPostPageTemplate { path: PathBuf, reason: String },
 
+    #[error("There was an issue generating a templated page.\n\n{reason}")]
+    InvalidPageTemplate { path: PathBuf, reason: String },
+
     #[error("The post path template in your gempost.yaml is invalid.\n\nTemplate: `{template}`\n\n{reason}")]
     InvalidPostPath { template: String, reason: String },
 

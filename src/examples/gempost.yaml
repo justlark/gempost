@@ -9,6 +9,10 @@ static_dir: "./static/"
 # (required).
 posts_dir: "./posts/"
 
+# The directory for gemtext pages and their sidecar metadata files
+# (required).
+pages_dir: "./pages/"
+
 # The path of the Tera template used to generate the gemlog index page
 # (required).
 index_template_file: "./templates/index.tera"
@@ -16,6 +20,10 @@ index_template_file: "./templates/index.tera"
 # The path of the Tera template used to generate each gemlog post page
 # (required).
 post_template_file: "./templates/post.tera"
+
+# The path of the Tera template used to generate each gemlog templated
+# page (required).
+page_template_file: "./templates/page.tera"
 
 # A Tera template which specifies the URL path for posts (required).
 #
@@ -28,6 +36,17 @@ post_template_file: "./templates/post.tera"
 # Docs for the Tera templating language:
 # https://keats.github.io/tera/docs/#templates
 post_path: "/posts/{{ slug }}.gmi"
+
+# A Tera template which specifies the URL path for pages (required).
+#
+# This template has access to the following variables:
+# - `breadcrumb`: The "navigation breadcrumb" of the page. Equivalent
+#    to the file path within context of the capsule.
+# - `slug`: The name of the gemtext source file, sans file extension
+#
+# Docs for the Tera templating language:
+# https://keats.github.io/tera/docs/#templates
+page_path: "/pages/{{ breadcrumb }}/{{ slug }}.gmi"
 
 # The URL path of the index page for your gemlog (required).
 index_path: "/posts/index.gmi"

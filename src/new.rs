@@ -1,4 +1,4 @@
-use std::fs::OpenOptions;
+use std::fs::{create_dir_all, OpenOptions};
 use std::io::{self, Write};
 use std::path::Path;
 
@@ -29,28 +29,23 @@ fn generate_metadata_file(template: &str, title: Option<&str>) -> eyre::Result<S
         .wrap_err("Failed to render new metadata file template. This is a bug.")
 }
 
-pub fn create_new_post(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyre::Result<()> {
-    let gemtext_path = posts_dir.join(format!("{slug}.gmi"));
-    let metadata_path = posts_dir.join(format!("{slug}.yaml"));
-
-    // Generate an empty gemtext file.
-
+fn create_empty_gemtext_file(gemtext_path: &Path, slug: &str) -> eyre::Result<()> {
     match OpenOptions::new()
         .write(true)
         .create_new(true)
         .open(gemtext_path)
     {
-        Ok(file) => file,
+        Ok(_) => Ok(()),
         Err(err) if err.kind() == io::ErrorKind::AlreadyExists => {
             bail!(Error::PostAlreadyExists {
                 slug: slug.to_owned()
             });
         }
         Err(err) => Err(err).wrap_err("failed creating new post gemtext file")?,
-    };
+    }
+}
 
-    // Generate a metadata YAML file.
-
+fn create_metadata_file(metadata_path: &Path, title: Option<&str>, slug: &str) -> eyre::Result<()> {
     let mut metadata_file = match OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -71,6 +66,45 @@ pub fn create_new_post(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyr
     metadata_file
         .write_all(metadata_file_contents.as_bytes())
         .wrap_err("failed writing contents to new post metadata file")?;
+
+    Ok(())
+}
+
+pub fn create_new_post(posts_dir: &Path, slug: &str, title: Option<&str>) -> eyre::Result<()> {
+    let gemtext_path = posts_dir.join(format!("{slug}.gmi"));
+    let metadata_path = posts_dir.join(format!("{slug}.yaml"));
+
+    // Generate an empty gemtext file.
+    create_empty_gemtext_file(&gemtext_path, slug)?;
+
+    // Generate a metadata YAML file.
+    create_metadata_file(&metadata_path, title, slug)?;
+
+    Ok(())
+}
+
+pub fn create_new_page(
+    pages_dir: &Path,
+    slug: &str,
+    title: Option<&str>,
+    subpath: Option<&Path>,
+) -> eyre::Result<()> {
+    // By default, files are created at the root. But they may be
+    // created at an optional subpath under the root.
+    let pages_dir = subpath
+        .map(|sp| pages_dir.join(sp))
+        .unwrap_or_else(|| pages_dir.to_path_buf());
+
+    create_dir_all(&pages_dir).wrap_err("failed to create the requested page directory")?;
+
+    let gemtext_path = pages_dir.join(format!("{slug}.gmi"));
+    let metadata_path = pages_dir.join(format!("{slug}.yaml"));
+
+    // Generate an empty gemtext file.
+    create_empty_gemtext_file(&gemtext_path, slug)?;
+
+    // Generate a metadata YAML file.
+    create_metadata_file(&metadata_path, title, slug)?;
 
     Ok(())
 }
