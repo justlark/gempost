@@ -6,6 +6,8 @@ use eyre::{bail, WrapErr};
 
 use crate::config::Config;
 use crate::feed::Feed;
+use crate::page::Pages;
+use crate::template::PagesTemplateData;
 use crate::template::{EntryTemplateData, FeedTemplateData};
 
 const FEED_TEMPLATE: &str = include_str!("atom.xml.tera");
@@ -72,6 +74,9 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
     let feed = Feed::from_config(config, warn_handler).wrap_err("failed parsing config file")?;
     let feed_data = FeedTemplateData::from(feed.clone());
 
+    let pages = Pages::from_config(config, warn_handler).wrap_err("failed parsing config file")?;
+    let pages_data = PagesTemplateData::from(pages.clone());
+
     // Delete the public dir. We do this because static files might have been removed since the
     // last build, and posts might have been removed or converted to drafts. It's easier to just
     // start with a new empty directory.
@@ -101,15 +106,26 @@ pub fn build_capsule(config: &Config) -> eyre::Result<()> {
         .wrap_err("failed rendering Atom feed")?;
 
     // Generate the individual posts.
-
     for entry in feed.entries {
         let post_path = config.public_dir.join(&entry.path);
 
         EntryTemplateData::from(entry)
-            .render(&feed_data, &config.post_template_file, &post_path)
+            .render_post(&feed_data, &config.post_template_file, &post_path)
             .wrap_err(format!(
                 "failed rendering post: {}",
                 post_path.to_string_lossy()
+            ))?;
+    }
+
+    // Generate individual templated pages
+    for page in pages.pages {
+        let page_path = config.public_dir.join(&page.path);
+
+        EntryTemplateData::from(page)
+            .render_page(&pages_data, &config.page_template_file, &page_path)
+            .wrap_err(format!(
+                "failed rendering post: {}",
+                page_path.to_string_lossy()
             ))?;
     }
 
