@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <id>{{ feed.capsule_url }}</id>
+  <id>{{ feed.capsule_url | safe }}</id>
   <title>{{ feed.title }}</title>
   {% if feed.subtitle -%}
   <subtitle>{{ feed.subtitle }}</subtitle>
@@ -13,11 +13,11 @@
   <author>
     <name>{{ feed.author.name }}</name>
     {% if feed.author.email %}<email>{{ feed.author.email }}</email>{% endif %}
-    {% if feed.author.uri %}<uri>{{ feed.author.uri }}</uri>{% endif %}
+    {% if feed.author.uri %}<uri>{{ feed.author.uri | safe }}</uri>{% endif %}
   </author>
   {% endif -%}
-  <link rel="self" type="application/atom+xml" href="{{ feed.feed_url }}" />
-  <link rel="alternate" href="{{ feed.index_url }}" />
+  <link rel="self" type="application/atom+xml" href="{{ feed.feed_url | safe }}" />
+  <link rel="alternate" href="{{ feed.index_url | safe }}" />
   {%- for entry in feed.entries %}
   <entry>
     <id>{{ entry.id }}</id>
@@ -29,7 +29,7 @@
     <published>{{ entry.published }}</published>
     {% endif -%}
     <updated>{{ entry.updated }}</updated>
-    <link rel="alternate" href="{{ entry.url }}"{% if entry.lang %} hreflang="{{ entry.lang }}"{% endif %} />
+    <link rel="alternate" href="{{ entry.url | safe }}"{% if entry.lang %} hreflang="{{ entry.lang }}"{% endif %} />
     {% if entry.rights -%}
     <rights>{{ entry.rights }}</rights>
     {% endif -%}
@@ -37,11 +37,11 @@
     <author>
       <name>{{ entry.author.name }}</name>
       {% if entry.author.email %}<email>{{ entry.author.email }}</email>{% endif %}
-      {% if entry.author.uri %}<uri>{{ entry.author.uri }}</uri>{% endif %}
+      {% if entry.author.uri %}<uri>{{ entry.author.uri | safe }}</uri>{% endif %}
     </author>
     {%- endif -%}
     {% for category in entry.categories %}
-    <category term="{{ category | slugify }}" scheme="{{ feed.capsule_url }}" label="{{ category }}" />
+    <category term="{{ category | slugify }}" scheme="{{ feed.capsule_url | safe }}" label="{{ category }}" />
     {%- endfor %}
   </entry>
   {%- endfor %}
